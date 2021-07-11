@@ -2,6 +2,14 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
+    <Authors>Dang Dinh Duc</Authors>
+    <Description>Core library for persistence in cqrs pattern in .net 5</Description>
+    <PackageReleaseNotes>first release v1.0.0</PackageReleaseNotes>
+    <PackageProjectUrl>https://github.com/Hanmactu712/Dapps.CqrsCore</PackageProjectUrl>
+    <Version>1.0.0.0</Version>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <RepositoryUrl>https://github.com/Hanmactu712/Dapps.CqrsCore</RepositoryUrl>
+    <PackageTags>v1.0.0</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
