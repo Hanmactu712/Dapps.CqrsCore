@@ -6,14 +6,14 @@ namespace Dapps.CqrsCore.Event
 {
     public class SerializedEvent
     {
-        //public Guid ID { get; set; }
-        public Guid AggregateID { get; set; }
+        public Guid AggregateId { get; set; }
         public int Version { get; set; }
         public Guid UserID { get; set; }
 
         public string Class { get; set; }
         public string Type { get; set; }
         public string Data { get; set; }
+        public Guid ReferenceId { get; set; }
         public DateTimeOffset Time { get; set; }
     }
 }

@@ -10,9 +10,9 @@ namespace Dapps.CqrsCore.ValueObjects
                 throw new InvalidValueException(typeof(T), "cannot be null");
         }
 
-        public static void MustBe<T>(this Value<T> value) where T : Value<T>
+        public static void MustBe<T>(this Value<T> value, Value<T> otherValue) where T : Value<T>
         {
-            if (value == null)
+            if (value != otherValue)
                 throw new InvalidValueException(typeof(T), "cannot be null");
         }
     }

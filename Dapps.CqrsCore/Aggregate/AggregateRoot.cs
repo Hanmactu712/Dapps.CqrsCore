@@ -34,13 +34,13 @@ namespace Dapps.CqrsCore.Aggregate
                 int i = 0;
                 foreach (var change in changes)
                 {
-                    if (change.Id == Guid.Empty && Id == Guid.Empty)
+                    if (change.AggregateId == Guid.Empty && Id == Guid.Empty)
                     {
                         throw new MissingAggregateIdentifierException(GetType(), change.GetType());
                     }
 
-                    if (change.Id == Guid.Empty)
-                        change.Id = Id;
+                    if (change.AggregateId == Guid.Empty)
+                        change.AggregateId = Id;
                     i++;
                     change.Version = Version + i;
                     change.Time = DateTimeOffset.UtcNow;
@@ -61,12 +61,12 @@ namespace Dapps.CqrsCore.Aggregate
                 {
                     if (change.Version != Version + 1)
                     {
-                        throw new UnorderedEventsException(change.Id);
+                        throw new UnorderedEventsException(change.AggregateId);
                     }
 
                     ApplyEvent(change);
 
-                    Id = change.Id;
+                    Id = change.AggregateId;
                     Version++;
                 }
             }

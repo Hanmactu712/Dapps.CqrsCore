@@ -25,18 +25,18 @@ namespace Dapps.CqrsCore.Persistence.Store
 
         public bool Exists(Guid aggregateID)
         {
-            return _dbContext.Events.AsNoTracking().Any(x => x.AggregateID.Equals(aggregateID));
+            return _dbContext.Events.AsNoTracking().Any(x => x.AggregateId.Equals(aggregateID));
         }
 
         public bool Exists(Guid aggregateID, int version)
         {
-            return _dbContext.Events.AsNoTracking().Any(x => x.AggregateID.Equals(aggregateID) && x.Version.Equals(version));
+            return _dbContext.Events.AsNoTracking().Any(x => x.AggregateId.Equals(aggregateID) && x.Version.Equals(version));
         }
 
         public IEnumerable<IEvent> Get(Guid aggregateID, int fromVersion)
         {
             return _dbContext.Events.AsNoTracking()
-                .Where(x => x.AggregateID.Equals(aggregateID) && x.Version >= fromVersion)
+                .Where(x => x.AggregateId.Equals(aggregateID) && x.Version >= fromVersion)
                 .Select(x => x.Deserialize(Serializer)).ToList().AsEnumerable();
         }
 
@@ -52,7 +52,7 @@ namespace Dapps.CqrsCore.Persistence.Store
 
             foreach (var ev in events)
             {
-                listEvents.Add(ev.Serialize(Serializer, aggregate.Id, ev.Version, ev.UserId));
+                listEvents.Add(ev.Serialize(Serializer, aggregate.Id, ev.Version));
             }
 
             //using var transaction = _dbContext.Database.BeginTransaction();

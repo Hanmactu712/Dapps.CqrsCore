@@ -36,7 +36,6 @@ namespace Dapps.CqrsCore.ValueObjects
                     : m.GetValue(this)));
 
         public static bool operator ==(Value<T> left, Value<T> right) => Equals(left, right);
-
         public static bool operator !=(Value<T> left, Value<T> right) => !Equals(left, right);
 
         public override string ToString()
@@ -79,7 +78,7 @@ namespace Dapps.CqrsCore.ValueObjects
 
         private static IEnumerable<object> GetEnumerableValues(object obj)
         {
-            var enumerator = ((IEnumerable)obj).GetEnumerator();
+            var enumerator = ((IEnumerable) obj).GetEnumerator();
             while (enumerator.MoveNext()) yield return enumerator.Current;
         }
 

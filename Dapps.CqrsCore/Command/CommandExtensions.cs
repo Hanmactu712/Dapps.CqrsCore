@@ -12,7 +12,7 @@ namespace Dapps.CqrsCore.Command
             var data = serializer.Deserialize<ICommand>(serializedCommand.Data, Type.GetType(serializedCommand.Class));
 
             data.Id = serializedCommand.Id;
-            data.UserId = serializedCommand.UserId;
+            //data.UserId = serializedCommand.UserId;
             data.Version = serializedCommand.Version;
 
             return data;
@@ -20,17 +20,16 @@ namespace Dapps.CqrsCore.Command
 
         public static SerializedCommand Serialize(this ICommand command, ISerializer serializer, Guid aggregateId, int? version)
         {
-            var data = serializer.Serialize(command, new[] { "Version", "UserId", "CommandId", "SendScheduled", "SendStarted", "SendCompleted", "SendCancelled" });
+            var data = serializer.Serialize(command, new[] { "Version", "SendScheduled", "SendStarted", "SendCompleted", "SendCancelled" });
 
             var serialized = new SerializedCommand
             {
-                //Id = aggregateId,
+                Id = command.Id,
+                AggregateId = aggregateId,
                 Version = version,
                 Class = command.GetType().AssemblyQualifiedName,
                 Type = command.GetType().Name,
                 Data = data,
-                CommandId = command.CommandId,
-                UserId = command.UserId,
             };
 
             if (serialized.Class != null && serialized.Class.Length > 200)

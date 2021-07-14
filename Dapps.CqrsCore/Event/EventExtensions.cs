@@ -14,10 +14,11 @@ namespace Dapps.CqrsCore.Event
         {
             var data = serializer.Deserialize<IEvent>(x.Data, Type.GetType(x.Class));
 
-            data.Id = x.AggregateID;
+            data.AggregateId = x.AggregateId;
             data.Version = x.Version;
             data.Time = x.Time;
-            data.UserId = x.UserID;
+            data.ReferenceId = x.ReferenceId;
+            //data.UserId = x.UserID;
 
             return data;
         }
@@ -25,23 +26,22 @@ namespace Dapps.CqrsCore.Event
         /// <summary>
         /// Returns a serialized event.
         /// </summary>
-        public static SerializedEvent Serialize(this IEvent ev, ISerializer serializer, Guid aggregateId, int version, Guid user)
+        public static SerializedEvent Serialize(this IEvent ev, ISerializer serializer, Guid aggregateId, int version)
         {
-            var data = serializer.Serialize(ev, new[] { "AggregateID", "Version", "Time", "UserID" });
+            var data = serializer.Serialize(ev, new[] { "AggregateId", "Version", "Time", "ReferenceId" });
 
             var serialized = new SerializedEvent
             {
-                AggregateID = aggregateId,
+                AggregateId = aggregateId,
                 Version = version,
-
                 Time = ev.Time,
                 Class = ev.GetType().AssemblyQualifiedName,
                 Type = ev.GetType().Name,
                 Data = data,
-                UserID = Guid.Empty == ev.UserId ? user : ev.UserId
+                ReferenceId = ev.ReferenceId
             };
 
-            ev.UserId = serialized.UserID;
+            //ev.UserId = serialized.UserID;
 
             return serialized;
         }

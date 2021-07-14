@@ -22,13 +22,13 @@ namespace Dapps.CqrsCore.Persistence.Store
         public bool Exists(Guid commandID)
         {
 
-            return _dbContext.Commands.Any(c => c.CommandId.Equals(commandID));
+            return _dbContext.Commands.Any(c => c.Id.Equals(commandID));
         }
 
         public SerializedCommand Get(Guid commandID)
         {
 
-            return _dbContext.Commands.AsNoTracking().FirstOrDefault(c => c.CommandId.Equals(commandID));
+            return _dbContext.Commands.AsNoTracking().FirstOrDefault(c => c.Id.Equals(commandID));
         }
 
         public IEnumerable<SerializedCommand> GetExpired(DateTimeOffset at)
@@ -41,8 +41,8 @@ namespace Dapps.CqrsCore.Persistence.Store
         {
             if (isNew)
             {
-                if (command.CommandId.Equals(Guid.Empty))
-                    command.CommandId = Guid.NewGuid();
+                if (command.Id.Equals(Guid.Empty))
+                    command.Id = Guid.NewGuid();
                 _dbContext.Commands.Add(command);
             }
             else
