@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Dapps.CqrsCore.Persistence.Read
 {
-    public interface IEFRepository<TEntity, TDbContext> where TEntity : class where TDbContext : DbContext
+    public interface IEfRepository<TEntity, TDbContext> where TEntity : class where TDbContext : DbContext
     {
         TEntity GetById(Guid id);
         IReadOnlyList<TEntity> ListAll();

@@ -2,9 +2,9 @@
 
 namespace Dapps.CqrsCore.Persistence.Read
 {
-    public class EFDbContextRepository<TEntity> : EFRepository<TEntity, DbContext> where TEntity : class
+    public class EfDbContextRepository<TEntity> : EfRepository<TEntity, DbContext> where TEntity : class
     {
-        public EFDbContextRepository(DbContext context) : base(context)
+        public EfDbContextRepository(DbContext context) : base(context)
         {
         }
     }

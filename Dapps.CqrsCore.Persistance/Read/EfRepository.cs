@@ -7,11 +7,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Dapps.CqrsCore.Persistence.Read
 {
-    public class EFRepository<TEntity, TDbContext> : IEFRepository<TEntity, TDbContext> where TEntity : class where TDbContext : DbContext
+    public class EfRepository<TEntity, TDbContext> : IEfRepository<TEntity, TDbContext> where TEntity : class where TDbContext : DbContext
     {
         private readonly TDbContext _context;
 
-        public EFRepository(TDbContext context)
+        public EfRepository(TDbContext context)
         {
             _context = context;
         }

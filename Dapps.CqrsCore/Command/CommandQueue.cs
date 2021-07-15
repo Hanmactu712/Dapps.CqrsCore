@@ -1,5 +1,4 @@
 ﻿using Dapps.CqrsCore.Exceptions;
-using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,25 +11,20 @@ namespace Dapps.CqrsCore.Command
         private readonly ICommandStore _store;
         private readonly bool _saveAll;
 
-        public CommandQueue(ICommandStore store, IConfiguration configuration)
+        public CommandQueue(ICommandStore store, CommandStoreOptions option)
         {
             _store = store;
-
-            var saveAll = Convert.ToBoolean(configuration.GetSection("CoreSettings:SaveAll").Value);
-
-            _saveAll = saveAll;
-
+            _saveAll = option.SaveAll;
             _subscribers = new Dictionary<string, Action<ICommand>>();
-
         }
 
         /// <summary>
         /// cancel a schedule command
         /// </summary>
-        /// <param name="commandID"></param>
-        public void Cancel(Guid commandID)
+        /// <param name="commandId"></param>
+        public void Cancel(Guid commandId)
         {
-            var serializedCommand = _store.Get(commandID);
+            var serializedCommand = _store.Get(commandId);
             if (serializedCommand != null)
             {
                 serializedCommand.SendCancelled = DateTimeOffset.UtcNow;
@@ -42,10 +36,10 @@ namespace Dapps.CqrsCore.Command
         /// <summary>
         /// complete a scheduled command
         /// </summary>
-        /// <param name="commandID"></param>
-        public void Complete(Guid commandID)
+        /// <param name="commandId"></param>
+        public void Complete(Guid commandId)
         {
-            var serializedCommand = _store.Get(commandID);
+            var serializedCommand = _store.Get(commandId);
             if (serializedCommand != null)
             {
                 serializedCommand.SendCompleted = DateTimeOffset.UtcNow;
@@ -116,10 +110,10 @@ namespace Dapps.CqrsCore.Command
         /// <summary>
         /// Start a scheduled command
         /// </summary>
-        /// <param name="commandID"></param>
-        public void Start(Guid commandID)
+        /// <param name="commandId"></param>
+        public void Start(Guid commandId)
         {
-            Execute(_store.Get(commandID));
+            Execute(_store.Get(commandId));
         }
 
         /// <summary>

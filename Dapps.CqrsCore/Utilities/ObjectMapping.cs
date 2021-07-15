@@ -1,8 +1,6 @@
-﻿using Dapps.CqrsCore.Event;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 
 namespace Dapps.CqrsCore.Utilities
 {
@@ -35,71 +33,6 @@ namespace Dapps.CqrsCore.Utilities
         public static T MapTo<T>(this object source, T target, Dictionary<string, string> exclusiveMapping = null,
             List<string> ignoreFields = null) where T : class
         {
-            //var targetFields = typeof(T).GetProperties();
-            //var sourceFields = message.GetType().GetFields();
-            //var sourceProperties = message.GetType().GetProperties();
-
-            //foreach (var targetField in targetFields)
-            //{
-            //    if (ignoreFields != null &&
-            //        ignoreFields.Any(e => e.Equals(targetField.Name, StringComparison.OrdinalIgnoreCase)))
-            //    {
-            //        continue;
-            //    }
-
-            //    if (exclusiveMapping != null)
-            //    {
-            //        if (exclusiveMapping.Any(e =>
-            //            e.Key.Equals(targetField.Name, StringComparison.OrdinalIgnoreCase)))
-            //        {
-            //            var mapping = exclusiveMapping.SingleOrDefault(e =>
-            //                e.Key.Equals(targetField.Name, StringComparison.OrdinalIgnoreCase));
-
-            //            var sourceField = sourceFields.SingleOrDefault(e =>
-            //                e.Name.Equals(mapping.Value, StringComparison.OrdinalIgnoreCase) &&
-            //                e.FieldType.Name.Equals(targetField.PropertyType.Name));
-
-            //            //check if field exists
-            //            if (sourceField != null)
-            //            {
-            //                targetField.SetValue(target, sourceField.GetValue(message));
-            //            }
-            //            else
-            //            {
-            //                //check if properties exists
-            //                var sourceProperty = sourceProperties.SingleOrDefault(e =>
-            //                    e.Name.Equals(mapping.Value, StringComparison.OrdinalIgnoreCase) &&
-            //                    e.PropertyType.Name.Equals(targetField.PropertyType.Name));
-
-            //                if (sourceProperty != null)
-            //                {
-            //                    targetField.SetValue(target, sourceProperty.GetValue(message));
-            //                }
-            //            }
-            //        }
-            //    }
-
-            //    //mapping based on name if no exclusive fields nor ignore fields are specified
-
-            //    foreach (var sourceField in sourceFields)
-            //    {
-            //        if (sourceField.Name.Equals(targetField.Name, StringComparison.OrdinalIgnoreCase) &&
-            //            sourceField.FieldType.Name.Equals(targetField.PropertyType.Name))
-            //        {
-            //            targetField.SetValue(target, sourceField.GetValue(message));
-            //        }
-            //    }
-
-            //    foreach (var sourceField in sourceProperties)
-            //    {
-            //        if (sourceField.Name.Equals(targetField.Name, StringComparison.OrdinalIgnoreCase) &&
-            //            sourceField.PropertyType.Name.Equals(targetField.PropertyType.Name))
-            //        {
-            //            targetField.SetValue(target, sourceField.GetValue(message));
-            //        }
-            //    }
-            //}
-
             target = source.MapFromFieldsToFields(target, exclusiveMapping, ignoreFields);
             target = source.MapFromFieldsToProperties(target, exclusiveMapping, ignoreFields);
             target = source.MapFromPropertiesToFields(target, exclusiveMapping, ignoreFields);

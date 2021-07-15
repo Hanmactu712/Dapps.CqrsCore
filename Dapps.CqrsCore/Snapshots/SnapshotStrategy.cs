@@ -1,6 +1,4 @@
 ﻿using Dapps.CqrsCore.Aggregate;
-using Microsoft.Extensions.Configuration;
-using System;
 
 namespace Dapps.CqrsCore.Snapshots
 {
@@ -14,10 +12,9 @@ namespace Dapps.CqrsCore.Snapshots
         /// <summary>
         /// Constructs a new strategy.
         /// </summary>
-        public SnapshotStrategy(IConfiguration configuration)
+        public SnapshotStrategy(SnapshotOptions option)
         {
-            var config = configuration.GetSection("SnapshotStrategy:Interval").Value;
-            _interval = !string.IsNullOrEmpty(config) ? Convert.ToInt16(config) : 100;
+            _interval = option?.Interval ?? 100;
         }
 
         /// <summary>

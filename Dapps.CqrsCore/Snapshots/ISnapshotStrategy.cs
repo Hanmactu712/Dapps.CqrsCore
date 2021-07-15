@@ -1,5 +1,4 @@
 ﻿using Dapps.CqrsCore.Aggregate;
-using Dapps.CqrsCore.Event;
 
 namespace Dapps.CqrsCore.Snapshots
 {

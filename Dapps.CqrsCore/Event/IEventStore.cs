@@ -16,17 +16,17 @@ namespace Dapps.CqrsCore.Event
         /// <summary>
         /// Returns true if an aggregate exists.
         /// </summary>
-        bool Exists(Guid aggregateID);
+        bool Exists(Guid aggregateId);
 
         /// <summary>
         /// Returns true if an aggregate with a specific version exists.
         /// </summary>
-        bool Exists(Guid aggregateID, int version);
+        bool Exists(Guid aggregateId, int version);
 
         /// <summary>
         /// Gets events for an aggregate starting at a specific version. To get all events use version = -1.
         /// </summary>
-        IEnumerable<IEvent> Get(Guid aggregateID, int version);
+        IEnumerable<IEvent> Get(Guid aggregateId, int version);
 
         /// <summary>
         /// Gets all aggregates that are scheduled to expire at (or before) a specific time on a specific date.

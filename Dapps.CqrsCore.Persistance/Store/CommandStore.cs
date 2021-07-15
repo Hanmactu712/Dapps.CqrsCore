@@ -10,8 +10,8 @@ namespace Dapps.CqrsCore.Persistence.Store
     public class CommandStore : ICommandStore
     {
         //private readonly DbContextOptions<PersistenceDBContext> _dbContextOptions;
-        private readonly EventSourcingDBContext _dbContext;
-        public CommandStore(ISerializer serializer, EventSourcingDBContext dbContext)
+        private readonly ICommandDbContext _dbContext;
+        public CommandStore(ISerializer serializer, ICommandDbContext dbContext)
         {
             Serializer = serializer;
             _dbContext = dbContext;
@@ -19,16 +19,16 @@ namespace Dapps.CqrsCore.Persistence.Store
 
         public ISerializer Serializer { get; }
 
-        public bool Exists(Guid commandID)
+        public bool Exists(Guid commandId)
         {
 
-            return _dbContext.Commands.Any(c => c.Id.Equals(commandID));
+            return _dbContext.Commands.Any(c => c.Id.Equals(commandId));
         }
 
-        public SerializedCommand Get(Guid commandID)
+        public SerializedCommand Get(Guid commandId)
         {
 
-            return _dbContext.Commands.AsNoTracking().FirstOrDefault(c => c.Id.Equals(commandID));
+            return _dbContext.Commands.AsNoTracking().FirstOrDefault(c => c.Id.Equals(commandId));
         }
 
         public IEnumerable<SerializedCommand> GetExpired(DateTimeOffset at)

@@ -12,7 +12,7 @@ namespace Dapps.CqrsCore.Aggregate
         public string Class { get; set; }
         public DateTimeOffset? Expires { get; set; }
 
-        public Guid AggregateID { get; set; }
+        public Guid AggregateId { get; set; }
 
         public string Type { get; set; }
 

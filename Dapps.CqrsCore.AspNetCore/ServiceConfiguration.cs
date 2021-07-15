@@ -9,9 +9,7 @@ namespace Dapps.CqrsCore.AspNetCore
         {
             var options = new CqrsServiceOptions();
             builder(options);
-
-
-
+            
             return services;
         }
     }

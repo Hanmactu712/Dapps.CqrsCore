@@ -3,7 +3,7 @@ namespace Dapps.CqrsCore
 {
     public enum CommandStatus
     {
-        None = 0,
+        None = 1,
         Scheduled = None << 1,
         Started = None << 2,
         Completed = None << 3,

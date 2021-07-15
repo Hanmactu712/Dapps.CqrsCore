@@ -14,7 +14,7 @@ namespace Dapps.CqrsCore.Persistence.Configuration
 
         public void Configure(EntityTypeBuilder<SerializedAggregate> builder)
         {
-            builder.ToTable($"{_schema}Aggregates").HasKey(x => x.AggregateID);
+            builder.ToTable($"{_schema}Aggregates").HasKey(x => x.AggregateId);
             builder.Property(x => x.Class).IsRequired().IsUnicode(false).HasMaxLength(200);
             builder.Property(x => x.Type).IsRequired().IsUnicode(false).HasMaxLength(200);
             builder.Property(x => x.Expires).IsRequired(false);

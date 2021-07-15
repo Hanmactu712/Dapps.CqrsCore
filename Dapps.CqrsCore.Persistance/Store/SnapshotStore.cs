@@ -5,23 +5,19 @@ using System.Text;
 using Dapps.CqrsCore.Persistence.Exceptions;
 using Dapps.CqrsCore.Snapshots;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 
 namespace Dapps.CqrsCore.Persistence.Store
 {
     public class SnapshotStore : ISnapshotStore
     {
-        private readonly EventSourcingDBContext _dbContext;
+        private readonly ISnapshotDbContext _dbContext;
 
         private readonly string _offlineStorageFolder;
 
-        public SnapshotStore(EventSourcingDBContext dbContext, IConfiguration configuration)
+        public SnapshotStore(ISnapshotDbContext dbContext, SnapshotOptions configuration)
         {
             _dbContext = dbContext;
-            var config = configuration.GetSection("Snapshot:LocalStorage").Value;
-            if (string.IsNullOrEmpty(config))
-                throw new ArgumentNullException(typeof(IConfiguration).FullName);
-            _offlineStorageFolder = config;
+            _offlineStorageFolder = configuration?.LocalStorage ?? throw new ArgumentNullException(nameof(SnapshotOptions));
         }
 
         public void Box(Guid aggregate)
@@ -52,7 +48,6 @@ namespace Dapps.CqrsCore.Persistence.Store
             else
             {
                 _dbContext.Entry(snapshot).State = EntityState.Modified;
-
             }
             _dbContext.SaveChanges();
         }

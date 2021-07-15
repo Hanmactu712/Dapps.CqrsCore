@@ -1,7 +1,6 @@
 ﻿using Dapps.CqrsCore.Aggregate;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Dapps.CqrsCore.Event
 {

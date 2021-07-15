@@ -10,8 +10,8 @@ namespace Dapps.CqrsCore.Persistence.Store
 {
     public class EventStore : IEventStore
     {
-        private readonly EventSourcingDBContext _dbContext;
-        public EventStore(ISerializer serializer, EventSourcingDBContext dbContext)
+        private readonly IEventDbContext _dbContext;
+        public EventStore(ISerializer serializer, IEventDbContext dbContext)
         {
             Serializer = serializer;
             _dbContext = dbContext;
@@ -23,26 +23,26 @@ namespace Dapps.CqrsCore.Persistence.Store
             throw new NotImplementedException();
         }
 
-        public bool Exists(Guid aggregateID)
+        public bool Exists(Guid aggregateId)
         {
-            return _dbContext.Events.AsNoTracking().Any(x => x.AggregateId.Equals(aggregateID));
+            return _dbContext.Events.AsNoTracking().Any(x => x.AggregateId.Equals(aggregateId));
         }
 
-        public bool Exists(Guid aggregateID, int version)
+        public bool Exists(Guid aggregateId, int version)
         {
-            return _dbContext.Events.AsNoTracking().Any(x => x.AggregateId.Equals(aggregateID) && x.Version.Equals(version));
+            return _dbContext.Events.AsNoTracking().Any(x => x.AggregateId.Equals(aggregateId) && x.Version.Equals(version));
         }
 
-        public IEnumerable<IEvent> Get(Guid aggregateID, int fromVersion)
+        public IEnumerable<IEvent> Get(Guid aggregateId, int fromVersion)
         {
             return _dbContext.Events.AsNoTracking()
-                .Where(x => x.AggregateId.Equals(aggregateID) && x.Version >= fromVersion)
+                .Where(x => x.AggregateId.Equals(aggregateId) && x.Version >= fromVersion)
                 .Select(x => x.Deserialize(Serializer)).ToList().AsEnumerable();
         }
 
         public IEnumerable<Guid> GetExpired(DateTimeOffset at)
         {
-            return _dbContext.Aggregates.Where(x => x.Expires != null && x.Expires <= at).Select(x => x.AggregateID).ToList().AsEnumerable();
+            return _dbContext.Aggregates.Where(x => x.Expires != null && x.Expires <= at).Select(x => x.AggregateId).ToList().AsEnumerable();
         }
 
         public void Save(AggregateRoot aggregate, IEnumerable<IEvent> events)
@@ -58,7 +58,7 @@ namespace Dapps.CqrsCore.Persistence.Store
             //using var transaction = _dbContext.Database.BeginTransaction();
 
             EnsureAggregateExist(aggregate.Id, aggregate.GetType().Name.Replace("Aggregate", string.Empty),
-                aggregate.GetType().FullName, _dbContext);
+                aggregate.GetType().FullName);
 
             foreach (var serializedEvent in listEvents)
             {
@@ -70,12 +70,12 @@ namespace Dapps.CqrsCore.Persistence.Store
             //transaction.Commit();
         }
 
-        private void EnsureAggregateExist(Guid aggregateID, string className, string classType, EventSourcingDBContext context)
+        private void EnsureAggregateExist(Guid aggregateId, string className, string classType)
         {
-            if (!_dbContext.Aggregates.Any(x => x.AggregateID.Equals(aggregateID)))
+            if (!_dbContext.Aggregates.Any(x => x.AggregateId.Equals(aggregateId)))
                 _dbContext.Aggregates.Add(new SerializedAggregate()
                 {
-                    AggregateID = aggregateID,
+                    AggregateId = aggregateId,
                     Class = className,
                     Type = classType
 
