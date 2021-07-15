@@ -2,6 +2,6 @@
 {
     public class CqrsServiceOptions
     {
-
+        public bool SaveAll { get; set; }
     }
 }

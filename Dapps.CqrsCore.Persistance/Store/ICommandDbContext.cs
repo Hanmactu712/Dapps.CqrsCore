@@ -11,6 +11,7 @@ namespace Dapps.CqrsCore.Persistence.Store
         /// DB set for storing command records
         /// </summary>
         DbSet<SerializedCommand> Commands { get; set; }
+
         /// <summary>Saves the changes.</summary>
         /// <returns></returns>
         int SaveChanges();

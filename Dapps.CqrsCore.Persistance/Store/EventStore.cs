@@ -11,6 +11,7 @@ namespace Dapps.CqrsCore.Persistence.Store
     public class EventStore : IEventStore
     {
         private readonly IEventDbContext _dbContext;
+
         public EventStore(ISerializer serializer, IEventDbContext dbContext)
         {
             Serializer = serializer;
@@ -18,6 +19,7 @@ namespace Dapps.CqrsCore.Persistence.Store
         }
 
         public ISerializer Serializer { get; }
+
         public void Box(Guid aggregate)
         {
             throw new NotImplementedException();
@@ -30,7 +32,8 @@ namespace Dapps.CqrsCore.Persistence.Store
 
         public bool Exists(Guid aggregateId, int version)
         {
-            return _dbContext.Events.AsNoTracking().Any(x => x.AggregateId.Equals(aggregateId) && x.Version.Equals(version));
+            return _dbContext.Events.AsNoTracking()
+                .Any(x => x.AggregateId.Equals(aggregateId) && x.Version.Equals(version));
         }
 
         public IEnumerable<IEvent> Get(Guid aggregateId, int fromVersion)
@@ -42,7 +45,8 @@ namespace Dapps.CqrsCore.Persistence.Store
 
         public IEnumerable<Guid> GetExpired(DateTimeOffset at)
         {
-            return _dbContext.Aggregates.Where(x => x.Expires != null && x.Expires <= at).Select(x => x.AggregateId).ToList().AsEnumerable();
+            return _dbContext.Aggregates.Where(x => x.Expires != null && x.Expires <= at).Select(x => x.AggregateId)
+                .ToList().AsEnumerable();
         }
 
         public void Save(AggregateRoot aggregate, IEnumerable<IEvent> events)

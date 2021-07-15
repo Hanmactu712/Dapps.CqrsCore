@@ -11,6 +11,7 @@ namespace Dapps.CqrsCore.Persistence.Store
     {
         //private readonly DbContextOptions<PersistenceDBContext> _dbContextOptions;
         private readonly ICommandDbContext _dbContext;
+
         public CommandStore(ISerializer serializer, ICommandDbContext dbContext)
         {
             Serializer = serializer;
@@ -21,13 +22,11 @@ namespace Dapps.CqrsCore.Persistence.Store
 
         public bool Exists(Guid commandId)
         {
-
             return _dbContext.Commands.Any(c => c.Id.Equals(commandId));
         }
 
         public SerializedCommand Get(Guid commandId)
         {
-
             return _dbContext.Commands.AsNoTracking().FirstOrDefault(c => c.Id.Equals(commandId));
         }
 

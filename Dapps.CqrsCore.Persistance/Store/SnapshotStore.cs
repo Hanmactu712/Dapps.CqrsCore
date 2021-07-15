@@ -17,7 +17,8 @@ namespace Dapps.CqrsCore.Persistence.Store
         public SnapshotStore(ISnapshotDbContext dbContext, SnapshotOptions configuration)
         {
             _dbContext = dbContext;
-            _offlineStorageFolder = configuration?.LocalStorage ?? throw new ArgumentNullException(nameof(SnapshotOptions));
+            _offlineStorageFolder =
+                configuration?.LocalStorage ?? throw new ArgumentNullException(nameof(SnapshotOptions));
         }
 
         public void Box(Guid aggregate)
@@ -49,6 +50,7 @@ namespace Dapps.CqrsCore.Persistence.Store
             {
                 _dbContext.Entry(snapshot).State = EntityState.Modified;
             }
+
             _dbContext.SaveChanges();
         }
 
