@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Reflection;
 using Dapps.CqrsCore.Command;
 using Dapps.CqrsCore.Event;
@@ -10,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Newtonsoft.Json;
 
 namespace Dapps.CqrsCore.AspNetCore
 {
@@ -26,24 +28,9 @@ namespace Dapps.CqrsCore.AspNetCore
         }
 
         private static ICqrsServiceBuilder AddDefaultEventSourcingDb(this ICqrsServiceBuilder builder,
-            IConfiguration configuration)
+            IConfiguration configuration, Action<DbContextOptionsBuilder> dbOptions)
         {
-            var callingAsm = Assembly.GetEntryAssembly();
-
-            if (callingAsm != null)
-            {
-                builder.Services.AddDbContext<EventSourcingDbContext>(option =>
-                    option.UseSqlServer(configuration.GetConnectionString("CqrsConnection"),
-                        option => option.MigrationsAssembly(callingAsm.GetName().Name)));
-
-
-                Console.WriteLine(callingAsm.GetName().Name);
-            }
-            else
-            {
-                builder.Services.AddDbContext<EventSourcingDbContext>(option =>
-                    option.UseSqlServer(configuration.GetConnectionString("CqrsConnection")));
-            }
+            builder.Services.AddDbContext<EventSourcingDbContext>(option => dbOptions?.Invoke(option));
 
             builder.Services.AddScoped<ICommandDbContext, EventSourcingDbContext>();
             builder.Services.AddScoped<IEventDbContext, EventSourcingDbContext>();
@@ -60,55 +47,70 @@ namespace Dapps.CqrsCore.AspNetCore
 
         private static ICqrsServiceBuilder AddDefaultCommandStore(this ICqrsServiceBuilder builder)
         {
-            builder.Services.AddScoped(typeof(ICommandStore), typeof(CommandStore));
+            builder.Services.AddSingleton(typeof(ICommandStore), typeof(CommandStore));
             return builder;
         }
 
         private static ICqrsServiceBuilder AddDefaultCommandQueue(this ICqrsServiceBuilder builder)
         {
-            builder.Services.AddScoped(typeof(ICommandQueue), typeof(CommandQueue));
+            builder.Services.AddSingleton(typeof(ICommandQueue), typeof(CommandQueue));
             return builder;
         }
 
         private static ICqrsServiceBuilder AddDefaultEventStore(this ICqrsServiceBuilder builder)
         {
-            builder.Services.AddScoped(typeof(IEventStore), typeof(EventStore));
+            builder.Services.AddSingleton(typeof(IEventStore), typeof(EventStore));
             return builder;
         }
 
         private static ICqrsServiceBuilder AddDefaultEventRepository(this ICqrsServiceBuilder builder)
         {
-            builder.Services.AddScoped(typeof(IEventRepository), typeof(EventRepository));
+            builder.Services.AddSingleton(typeof(IEventRepository), typeof(EventRepository));
             return builder;
         }
 
         private static ICqrsServiceBuilder AddDefaultEventQueue(this ICqrsServiceBuilder builder)
         {
-            builder.Services.AddScoped(typeof(IEventQueue), typeof(EventQueue));
+            builder.Services.AddSingleton(typeof(IEventQueue), typeof(EventQueue));
             return builder;
         }
 
+        ///// <summary>
+        ///// Add cqrs services with default configuration
+        ///// </summary>
+        ///// <param name="services"></param>
+        ///// <param name="configuration"></param>
+        ///// <returns></returns>
+        //public static ICqrsServiceBuilder AddCqrsService(this IServiceCollection services, IConfiguration configuration)
+        //{
+        //    var builder = services.AddCqrsServiceBuilder();
 
-        /// <summary>
-        /// Add cqrs services with default configuration
-        /// </summary>
-        /// <param name="services"></param>
-        /// <param name="configuration"></param>
-        /// <returns></returns>
-        public static ICqrsServiceBuilder AddCqrsService(this IServiceCollection services, IConfiguration configuration)
-        {
-            var builder = services.AddCqrsServiceBuilder();
+        //    var options = new CqrsServiceOptions();
+        //    configuration.GetSection(CqrsServiceOptions.Name).Bind(options);
 
-            builder.AddDefaultSerializer()
-                .AddDefaultEventSourcingDb(configuration)
-                .AddDefaultCommandStore()
-                .AddDefaultCommandQueue()
-                .AddDefaultEventStore()
-                .AddDefaultEventRepository()
-                .AddDefaultEventQueue();
+        //    var commandOption = new CommandStoreOptions() { SaveAll = options.SaveAll };
 
-            return builder;
-        }
+        //    var snapshotOption = new SnapshotOptions()
+        //    {
+        //        Interval = options.Snapshot.Interval,
+        //        LocalStorage = options.Snapshot.LocalStorage
+        //    };
+
+        //    Console.WriteLine($"====== CqrsServiceOptions: {JsonConvert.SerializeObject(options)}");
+
+        //    builder.Services.AddSingleton(commandOption);
+        //    builder.Services.AddSingleton(snapshotOption);
+
+        //    builder.AddDefaultSerializer()
+        //        .AddDefaultEventSourcingDb(configuration)
+        //        .AddDefaultCommandStore()
+        //        .AddDefaultCommandQueue()
+        //        .AddDefaultEventStore()
+        //        .AddDefaultEventRepository()
+        //        .AddDefaultEventQueue();
+
+        //    return builder;
+        //}
 
         /// <summary>
         /// Add default configuration for snapshot feature
@@ -117,12 +119,12 @@ namespace Dapps.CqrsCore.AspNetCore
         /// <param name="configure"></param>
         /// <returns></returns>
         public static ICqrsServiceBuilder AddSnapshotFeature(this ICqrsServiceBuilder builder,
-            Action<SnapshotOptions> configure)
+            Action<SnapshotOptions> configure = null)
         {
-            var option = new SnapshotOptions();
-            configure(option);
+            //var option = new SnapshotOptions();
+            //configure?.Invoke(option);
 
-            builder.Services.AddSingleton(option);
+            //builder.Services.AddSingleton(option);
             //builder.Services.AddScoped<ISnapshotDbContext, EventSourcingDbContext>();
 
             builder.Services.AddScoped(typeof(ISnapshotStrategy), typeof(SnapshotStrategy));
@@ -144,18 +146,51 @@ namespace Dapps.CqrsCore.AspNetCore
         /// <param name="cqrsServiceOptions"></param>
         /// <returns></returns>
         public static ICqrsServiceBuilder AddCqrsService(this IServiceCollection services, IConfiguration configuration,
-            Action<CqrsServiceOptions> cqrsServiceOptions)
+            Action<CqrsServiceOptions> cqrsServiceOptions = null)
         {
             services.Configure(cqrsServiceOptions);
 
-            var commandOption = new CommandStoreOptions();
-            var cqrsOption = new CqrsServiceOptions();
-            cqrsServiceOptions(cqrsOption);
-            commandOption.SaveAll = cqrsOption.SaveAll;
+            //var commandOption = new CommandStoreOptions();
+            //var cqrsOption = new CqrsServiceOptions();
+            //cqrsServiceOptions(cqrsOption);
+            //commandOption.SaveAll = cqrsOption.SaveAll;
 
-            services.AddSingleton(commandOption);
 
-            var builder = services.AddCqrsService(configuration);
+
+            var builder = services.AddCqrsServiceBuilder();
+
+            var options = new CqrsServiceOptions();
+
+            if (cqrsServiceOptions != null)
+            {
+                services.AddSingleton(options);
+                cqrsServiceOptions.Invoke(options);
+            }
+            else
+            {
+                configuration.GetSection(CqrsServiceOptions.Name).Bind(options);
+            }
+
+            var commandOption = new CommandStoreOptions() { SaveAll = options.SaveAll };
+
+            var snapshotOption = new SnapshotOptions()
+            {
+                Interval = options.Snapshot.Interval,
+                LocalStorage = options.Snapshot.LocalStorage
+            };
+
+            Console.WriteLine($"====== CqrsServiceOptions: {options.SaveAll} - Interval: {snapshotOption.Interval} - LocalStorage {snapshotOption.LocalStorage}");
+
+            builder.Services.AddSingleton(commandOption);
+            builder.Services.AddSingleton(snapshotOption);
+
+            builder.AddDefaultSerializer()
+                .AddDefaultEventSourcingDb(configuration, options.DbContextOption)
+                .AddDefaultCommandStore()
+                .AddDefaultCommandQueue()
+                .AddDefaultEventStore()
+                .AddDefaultEventRepository()
+                .AddDefaultEventQueue();
 
             return builder;
         }
@@ -257,28 +292,64 @@ namespace Dapps.CqrsCore.AspNetCore
             return builder;
         }
 
+        /// <summary>
+        /// Register all ICommandHandler && IEventHandler in the calling assembly
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <returns></returns>
         public static ICqrsServiceBuilder AddHandlers(this ICqrsServiceBuilder builder)
         {
-            var callerAssembly = Assembly.GetCallingAssembly();
+            builder.AddCommandHandlers();
+            builder.AddEventHandlers();
 
-            var commandHandlerTypes = AssemblyUtils.GetTypesDerivedFromType(callerAssembly, typeof(ICommandHandler<>));
+            return builder;
+        }
 
-            foreach (var commandHandlerType in commandHandlerTypes)
+        /// <summary>
+        /// Register all ICommandHandler in the calling assembly
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <returns></returns>
+        public static ICqrsServiceBuilder AddCommandHandlers(this ICqrsServiceBuilder builder)
+        {
+            builder.RegisterHandler(typeof(ICommand), typeof(ICommandHandler<>), typeof(CommandHandler<>));
+
+            return builder;
+        }
+
+        /// <summary>
+        /// Register all IEventHandler in the calling assembly
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <returns></returns>
+        public static ICqrsServiceBuilder AddEventHandlers(this ICqrsServiceBuilder builder)
+        {
+            builder.RegisterHandler(typeof(IEvent), typeof(IEventHandler<>), typeof(Event.EventHandler<>));
+
+            return builder;
+        }
+
+        private static ICqrsServiceBuilder RegisterHandler(this ICqrsServiceBuilder builder, Type argumentType, Type interfaceType, Type implementationType)
+        {
+            var callerAssembly = Assembly.GetEntryAssembly();
+
+            var commands = AssemblyUtils.GetTypesDerivedFromType(callerAssembly, argumentType);
+
+            foreach (var commandType in commands)
             {
-                //var genericType = commandHandlerType.GetTypeInfo().GenericTypeArguments[0];
-                Console.WriteLine($"Register command type === {commandHandlerType.AssemblyQualifiedName}");
-                builder.Services.AddSingleton(commandHandlerType);
+                var handlerType = interfaceType;
+                var implementedType = implementationType;
+                Type[] arg = { commandType };
+                var genericHandlerType = handlerType.MakeGenericType(arg);
+                var genericImplementedHandlerType = implementedType.MakeGenericType(arg);
+
+                var commandHandlerType = AssemblyUtils.GetTypesDerivedFromType(callerAssembly, genericImplementedHandlerType).ToList();
+
+                if (commandType != null && commandHandlerType.Count > 0)
+                {
+                    builder.Services.AddSingleton(genericHandlerType, commandHandlerType[0]);
+                }
             }
-
-            var eventHandlerTypes = AssemblyUtils.GetTypesDerivedFromType(callerAssembly, typeof(IEventHandler<>));
-
-            foreach (var eventHandlerType in eventHandlerTypes)
-            {
-                //var genericType = commandHandlerType.GetTypeInfo().GenericTypeArguments[0];
-                Console.WriteLine($"Register command type === {eventHandlerType.AssemblyQualifiedName}");
-                builder.Services.AddSingleton(eventHandlerType);
-            }
-
             return builder;
         }
     }

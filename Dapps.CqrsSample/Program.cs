@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
+using System.Reflection;
 using Dapps.CqrsCore.AspNetCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -48,11 +50,14 @@ namespace Dapps.CqrsSample
 
         private static IHostBuilder CreateHostBuilder(string[] args)
         {
+            var rootPath = AppDomain.CurrentDomain.BaseDirectory;
+
             return Host.CreateDefaultBuilder(args)
                 .ConfigureHostConfiguration(configHost =>
                 {
                     configHost.SetBasePath(Directory.GetCurrentDirectory());
-                    configHost.AddJsonFile("E:\\DUCDD\\CQRS\\Core\\Dapps.CqrsSample\\bin\\Debug\\net5.0\\hostsettings.json", optional: true);
+                    //configHost.AddJsonFile("E:\\DUCDD\\CQRS\\Core\\Dapps.CqrsSample\\bin\\Debug\\net5.0\\hostsettings.json", optional: true);
+                    configHost.AddJsonFile($"{rootPath}\\hostsettings.json", optional: true);
                     configHost.AddEnvironmentVariables(prefix: "PREFIX_");
                     configHost.AddCommandLine(args);
                 })
@@ -60,16 +65,26 @@ namespace Dapps.CqrsSample
                 {
                     configuration.Sources.Clear();
                     IHostEnvironment env = hostContext.HostingEnvironment;
-                    configuration.AddJsonFile("E:\\DUCDD\\CQRS\\Core\\Dapps.CqrsSample\\bin\\Debug\\net5.0\\appsettings.json", optional: false, reloadOnChange: true)
-                        .AddJsonFile($"E:\\DUCDD\\CQRS\\Core\\Dapps.CqrsSample\\bin\\Debug\\net5.0\\appsettings.{env.EnvironmentName}.json", true, true);
+                    //configuration.AddJsonFile("E:\\DUCDD\\CQRS\\Core\\Dapps.CqrsSample\\bin\\Debug\\net5.0\\appsettings.json", optional: false, reloadOnChange: true)
+                    //    .AddJsonFile($"E:\\DUCDD\\CQRS\\Core\\Dapps.CqrsSample\\bin\\Debug\\net5.0\\appsettings.{env.EnvironmentName}.json", true, true);
+
+                    configuration.AddJsonFile($"{rootPath}\\appsettings.json", optional: false, reloadOnChange: true)
+                        .AddJsonFile($"{rootPath}\\appsettings.{env.EnvironmentName}.json", true, true);
 
                     _configuration = configuration.Build();
                 })
                 .ConfigureServices((hostContext, services) =>
                 {
+                    var currentAssembly = Assembly.GetAssembly(typeof(Program)).GetName().Name;
+
                     services.AddCqrsService(_configuration, option =>
                     {
                         option.SaveAll = Convert.ToBoolean(_configuration.GetSection("CoreSettings:SaveAll").Value);
+                        //option.DbContextOption = sql =>
+                        //    sql.UseSqlServer(_configuration.GetConnectionString("CqrsConnection"),
+                        //        migrationOps => migrationOps.MigrationsAssembly(currentAssembly));
+                        option.DbContextOption = sql => sql.UseInMemoryDatabase("CqrsConnection");
+
                     }).AddHandlers();
 
                     services.AddHostedService<HostedService>();

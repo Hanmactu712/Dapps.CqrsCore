@@ -21,8 +21,17 @@ namespace Dapps.CqrsCore.Utilities
         public static Type[] GetTypesDerivedFromType(Assembly assembly, Type type, string nameSpace = "")
         {
             var x = assembly.GetTypes();
-            var y = assembly.GetTypes().Where(t => t.Namespace != null && t.Namespace.Contains(nameSpace, StringComparison.Ordinal));
-            var z = assembly.GetTypes().Where(t => t.Namespace != null && t.Namespace.Contains(nameSpace, StringComparison.Ordinal)).Where(type.IsAssignableFrom);
+            var y = assembly.GetTypes().Where(t => t.Namespace != null && t.Namespace.Contains(nameSpace, StringComparison.Ordinal)).ToList();
+            var z = assembly.GetTypes()
+                .Where(t => t.Namespace != null && t.Namespace.Contains(nameSpace, StringComparison.Ordinal)).Where(t =>
+                    t.IsAssignableTo(type)).ToList();
+
+            //var 
+
+            //var k = assembly.GetTypes()
+            //    .Where(t => t.Namespace != null && t.Namespace.Contains(nameSpace, StringComparison.Ordinal)).Where(t =>
+            //        t.IsAssignableTo(type)).ToList();
+
 
             return
                 !string.IsNullOrEmpty(nameSpace)

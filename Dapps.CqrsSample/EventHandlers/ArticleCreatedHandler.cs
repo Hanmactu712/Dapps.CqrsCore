@@ -1,5 +1,6 @@
 ﻿using System;
 using Dapps.CqrsCore.Event;
+using Microsoft.Extensions.Logging;
 
 namespace Dapps.CqrsSample.EventHandlers
 {
@@ -18,11 +19,17 @@ namespace Dapps.CqrsSample.EventHandlers
         }
     }
 
-    public class ArticleCreatedHandler : IEventHandler<ArticleCreated>
+    public class ArticleCreatedHandler : Dapps.CqrsCore.Event.EventHandler<ArticleCreated>
     {
-        public void Handle(ArticleCreated @event)
+        private readonly ILogger<ArticleCreatedHandler> _logger;
+        public ArticleCreatedHandler(IEventQueue queue, ILogger<ArticleCreatedHandler> logger) : base(queue)
         {
-            
+            _logger = logger;
+            _logger.LogInformation($"Register event {typeof(ArticleCreated)}");
+        }
+        public override void Handle(ArticleCreated @event)
+        {
+            _logger.LogInformation($"================Handle event {typeof(ArticleCreated)} - {@event.Title}");
         }
     }
 }

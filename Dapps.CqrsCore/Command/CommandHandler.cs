@@ -1,12 +1,7 @@
 ﻿using Dapps.CqrsCore.Aggregate;
 using Dapps.CqrsCore.Event;
-using Dapps.CqrsCore.Exceptions;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Linq;
-using System.Reflection;
-using System.Reflection.Metadata;
-using Dapps.CqrsCore.Utilities;
 
 namespace Dapps.CqrsCore.Command
 {
@@ -17,66 +12,13 @@ namespace Dapps.CqrsCore.Command
     {
         private readonly IEventRepository _repository;
         private readonly IEventQueue _eventQueue;
-        private readonly ILogger _logger;
 
-        protected CommandHandler(ICommandQueue queue, IEventRepository eventRepository, IEventQueue eventQueue, ILogger logger)
+        protected CommandHandler(ICommandQueue queue, IEventRepository eventRepository, IEventQueue eventQueue)
         {
             _eventQueue = eventQueue;
-            _logger = logger;
             _repository = eventRepository;
             queue.Subscribe<TCommand>(Handle);
-
-            //var currentAsm = Assembly.GetCallingAssembly();
-            //register Handle to command queue
-            //RegisterHandlerForCommands(queue, currentAsm);
         }
-
-        //private void RegisterHandlerForCommands(ICommandQueue queue, Assembly asm)
-        //{
-
-        //    var types = AssemblyUtils.GetTypesDerivedFromType(asm, typeof(Command));
-
-        //    foreach (var type in types)
-        //    {
-        //        try
-        //        {
-        //            var handle = GetType().GetMethod("Handle", new[] { type });
-
-        //            if (handle == null)
-        //            {
-        //                throw new MethodNotFoundException(GetType(), "Handle", type);
-        //            }
-
-        //            RegisterHandleToQueue(queue, type, handle);
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            _logger.LogInformation(ex.Message);
-        //        }
-        //    }
-
-        //}
-
-        //private void RegisterHandleToQueue(ICommandQueue queue, Type commandType, MethodInfo handle)
-        //{
-        //    var method = typeof(ICommandQueue).GetMethods()
-        //        .FirstOrDefault(i => i.Name == "Subscribe" && i.IsGenericMethod);
-
-        //    if (method == null) return;
-
-        //    var generic = method.MakeGenericMethod(commandType);
-
-        //    var genActionType = typeof(Action<>);
-        //    var actionType = genActionType.MakeGenericType(commandType);
-
-        //    //var target = Activator.CreateInstance(eventType);
-
-        //    var action = handle.CreateDelegate(actionType, this);
-
-        //    object[] parametersArray = { action };
-        //    generic.Invoke(queue, parametersArray);
-
-        //}
 
         /// <summary>
         /// Get aggregate from event sourcing
@@ -102,6 +44,10 @@ namespace Dapps.CqrsCore.Command
             }
         }
 
+        /// <summary>
+        /// Handle command logic
+        /// </summary>
+        /// <param name="message"></param>
         public abstract void Handle(TCommand message);
     }
 }

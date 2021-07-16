@@ -1,6 +1,4 @@
-﻿using System.Threading.Tasks;
-
-namespace Dapps.CqrsCore.Event
+﻿namespace Dapps.CqrsCore.Event
 {
     public interface IEventHandler<in TEvent> where TEvent : IEvent
     {
