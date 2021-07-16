@@ -52,7 +52,7 @@ namespace Dapps.CqrsSample
                 .ConfigureHostConfiguration(configHost =>
                 {
                     configHost.SetBasePath(Directory.GetCurrentDirectory());
-                    configHost.AddJsonFile("D:\\Workplace\\Projects\\Dapps.CqrsCore\\Dapps.CqrsSample\\bin\\Debug\\netcoreapp3.1\\hostsettings.json", optional: true);
+                    configHost.AddJsonFile("E:\\DUCDD\\CQRS\\Core\\Dapps.CqrsSample\\bin\\Debug\\net5.0\\hostsettings.json", optional: true);
                     configHost.AddEnvironmentVariables(prefix: "PREFIX_");
                     configHost.AddCommandLine(args);
                 })
@@ -60,18 +60,19 @@ namespace Dapps.CqrsSample
                 {
                     configuration.Sources.Clear();
                     IHostEnvironment env = hostContext.HostingEnvironment;
-                    configuration.AddJsonFile("D:\\Workplace\\Projects\\Dapps.CqrsCore\\Dapps.CqrsSample\\bin\\Debug\\netcoreapp3.1\\appsettings.json", optional: false, reloadOnChange: true)
-                        .AddJsonFile($"D:\\Workplace\\Projects\\Dapps.CqrsCore\\Dapps.CqrsSample\\bin\\Debug\\netcoreapp3.1\\appsettings.{env.EnvironmentName}.json", true, true);
+                    configuration.AddJsonFile("E:\\DUCDD\\CQRS\\Core\\Dapps.CqrsSample\\bin\\Debug\\net5.0\\appsettings.json", optional: false, reloadOnChange: true)
+                        .AddJsonFile($"E:\\DUCDD\\CQRS\\Core\\Dapps.CqrsSample\\bin\\Debug\\net5.0\\appsettings.{env.EnvironmentName}.json", true, true);
 
                     _configuration = configuration.Build();
                 })
                 .ConfigureServices((hostContext, services) =>
                 {
                     services.AddCqrsService(_configuration, option =>
-                        {
-                            option.SaveAll = Convert.ToBoolean(_configuration.GetSection("CoreSettings:SaveAll").Value);
-                        });
-                    //services.AddHostedService<CommandService>();
+                    {
+                        option.SaveAll = Convert.ToBoolean(_configuration.GetSection("CoreSettings:SaveAll").Value);
+                    }).AddHandlers();
+
+                    services.AddHostedService<HostedService>();
                 });
         }
     }

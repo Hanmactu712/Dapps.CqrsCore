@@ -1,4 +1,5 @@
-﻿using Dapps.CqrsCore.Command;
+﻿using System;
+using Dapps.CqrsCore.Command;
 using Dapps.CqrsCore.Event;
 using Microsoft.Extensions.Logging;
 
@@ -18,16 +19,16 @@ namespace Dapps.CqrsSample.CommandHandlers
         }
     }
 
-    public class CreateUserHandler : CommandHandler<CreateArticle>
+    public class CreateArticleHandler : CommandHandler<CreateArticle>
     {
-        public CreateUserHandler(ICommandQueue queue, IEventRepository eventRepository, IEventQueue eventQueue,
+        public CreateArticleHandler(ICommandQueue queue, IEventRepository eventRepository, IEventQueue eventQueue,
             ILogger logger) : base(queue, eventRepository, eventQueue, logger)
         {
         }
 
         public override void Handle(CreateArticle command)
         {
-            
+            Console.WriteLine("Save to database");
         }
     }
 }

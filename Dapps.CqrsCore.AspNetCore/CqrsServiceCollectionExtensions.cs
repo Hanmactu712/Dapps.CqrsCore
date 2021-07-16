@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 using Dapps.CqrsCore.Command;
 using Dapps.CqrsCore.Event;
 using Dapps.CqrsCore.Persistence;
@@ -23,12 +24,26 @@ namespace Dapps.CqrsCore.AspNetCore
         {
             return new CqrsServiceBuilder(services);
         }
-        
+
         private static ICqrsServiceBuilder AddDefaultEventSourcingDb(this ICqrsServiceBuilder builder,
             IConfiguration configuration)
         {
-            builder.Services.AddDbContext<EventSourcingDbContext>(option =>
-                option.UseSqlServer(configuration.GetConnectionString("CqrsConnection")));
+            var callingAsm = Assembly.GetEntryAssembly();
+
+            if (callingAsm != null)
+            {
+                builder.Services.AddDbContext<EventSourcingDbContext>(option =>
+                    option.UseSqlServer(configuration.GetConnectionString("CqrsConnection"),
+                        option => option.MigrationsAssembly(callingAsm.GetName().Name)));
+
+
+                Console.WriteLine(callingAsm.GetName().Name);
+            }
+            else
+            {
+                builder.Services.AddDbContext<EventSourcingDbContext>(option =>
+                    option.UseSqlServer(configuration.GetConnectionString("CqrsConnection")));
+            }
 
             builder.Services.AddScoped<ICommandDbContext, EventSourcingDbContext>();
             builder.Services.AddScoped<IEventDbContext, EventSourcingDbContext>();
@@ -160,7 +175,7 @@ namespace Dapps.CqrsCore.AspNetCore
             //builder.Services.AddScoped(typeof(ISerializer), typeof(TSerializer));
             return builder;
         }
-        
+
         /// <summary>
         /// Override default configuration for event & aggregate store database
         /// </summary>
@@ -239,6 +254,31 @@ namespace Dapps.CqrsCore.AspNetCore
         {
             builder.Services.Replace(new ServiceDescriptor(typeof(ICommandQueue), typeof(TQueue),
                 ServiceLifetime.Scoped));
+            return builder;
+        }
+
+        public static ICqrsServiceBuilder AddHandlers(this ICqrsServiceBuilder builder)
+        {
+            var callerAssembly = Assembly.GetCallingAssembly();
+
+            var commandHandlerTypes = AssemblyUtils.GetTypesDerivedFromType(callerAssembly, typeof(ICommandHandler<>));
+
+            foreach (var commandHandlerType in commandHandlerTypes)
+            {
+                //var genericType = commandHandlerType.GetTypeInfo().GenericTypeArguments[0];
+                Console.WriteLine($"Register command type === {commandHandlerType.AssemblyQualifiedName}");
+                builder.Services.AddSingleton(commandHandlerType);
+            }
+
+            var eventHandlerTypes = AssemblyUtils.GetTypesDerivedFromType(callerAssembly, typeof(IEventHandler<>));
+
+            foreach (var eventHandlerType in eventHandlerTypes)
+            {
+                //var genericType = commandHandlerType.GetTypeInfo().GenericTypeArguments[0];
+                Console.WriteLine($"Register command type === {eventHandlerType.AssemblyQualifiedName}");
+                builder.Services.AddSingleton(eventHandlerType);
+            }
+
             return builder;
         }
     }
