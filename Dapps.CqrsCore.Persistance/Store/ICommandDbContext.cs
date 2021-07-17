@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-using Dapps.CqrsCore.Command;
+﻿using Dapps.CqrsCore.Command;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 
@@ -15,11 +14,13 @@ namespace Dapps.CqrsCore.Persistence.Store
         /// <summary>Saves the changes.</summary>
         /// <returns></returns>
         int SaveChanges();
-
-        ///// <summary>Saves the changes.</summary>
-        ///// <returns></returns>
-        //Task<int> SaveChangesAsync();
-
+        
+        /// <summary>
+        /// provide access to change the tracking information & operations for given entity. 
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <param name="entity"></param>
+        /// <returns></returns>
         EntityEntry<TEntity> Entry<TEntity>(TEntity entity) where TEntity : class;
     }
 }

@@ -24,21 +24,49 @@ namespace Dapps.CqrsSample
             _provider = provider;
             _cmdHandler = provider.GetRequiredService<ICommandHandler<CreateArticle>>();
             _eventHandler = provider.GetRequiredService<IEventHandler<ArticleCreated>>();
+
+            var cmdHandler = provider.GetRequiredService<ICommandHandler<UpdateArticle>>();
+            var eventHandler = provider.GetRequiredService<IEventHandler<ArticleUpdated>>();
+
             _logger = logger;
             _queue = queue;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
+
             //test with sending a chain of commands
             for (int i = 0; i < 10; i++)
             {
-                var command = new CreateArticle($"Test title {i} {DateTime.Now}", $"Test summary {DateTime.Now}",
-                    $"Test details {DateTime.Now}", Guid.NewGuid());
+                var commandId = Guid.NewGuid();
+                var userId = Guid.NewGuid();
 
-                _logger.LogInformation($"Send test command {command.Title}");
+                var command = new CreateArticle($"Test title {i} {DateTime.Now}", $"Test summary {DateTime.Now}",
+                        $"Test details {DateTime.Now}", Guid.NewGuid())
+                {
+                    AggregateId = commandId,
+                    UserId = userId
+                };
+
+                _logger.LogInformation($"Send create command {command.Title}");
                 _queue.Send(command);
-                _logger.LogInformation($"Test command {command.Title} is sent");
+                _logger.LogInformation($"Create command {command.Title} is sent");
+
+                var updateTimes = i != 5 ? 10 : 30;
+
+                for (int j = 0; j < updateTimes; j++)
+                {
+                    var updateCommand = new UpdateArticle($"Update title {i} {DateTime.Now}", $"Update summary {DateTime.Now}",
+                        $"Update details {DateTime.Now}", Guid.NewGuid())
+                    {
+                        AggregateId = commandId,
+                        UserId = userId
+                    };
+
+                    _logger.LogInformation($"Send update command {command.Title}");
+                    _queue.Send(updateCommand);
+                    _logger.LogInformation($"Update command {command.Title} is sent");
+                }
             }
 
             return Task.CompletedTask;

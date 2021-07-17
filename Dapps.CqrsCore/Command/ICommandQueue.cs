@@ -2,6 +2,9 @@
 
 namespace Dapps.CqrsCore.Command
 {
+    /// <summary>
+    /// Interface of a command queue which carries all the command and deliver command to subscribers
+    /// </summary>
     public interface ICommandQueue
     {
         /// <summary>
@@ -42,6 +45,9 @@ namespace Dapps.CqrsCore.Command
         /// <param name="commandID"></param>
         void Complete(Guid commandID);
 
+        /// <summary>
+        /// Ping to the command store to awake all scheduled command haven't been handled.
+        /// </summary>
         void Ping();
     }
 }

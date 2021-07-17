@@ -8,6 +8,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Dapps.CqrsCore.Persistence.Store
 {
+    /// <summary>
+    /// Default command store
+    /// </summary>
     public class CommandStore : ICommandStore
     {
         //private readonly DbContextOptions<PersistenceDBContext> _dbContextOptions;
@@ -15,8 +18,10 @@ namespace Dapps.CqrsCore.Persistence.Store
 
         public CommandStore(ISerializer serializer, IServiceProvider service)
         {
-            Serializer = serializer;
+            Serializer = serializer ?? throw new ArgumentNullException(nameof(ISerializer));
             _dbContext = service.CreateScope().ServiceProvider.GetRequiredService<ICommandDbContext>();
+            if(_dbContext == null)
+                throw new ArgumentNullException(nameof(ICommandDbContext));
         }
 
         public ISerializer Serializer { get; }

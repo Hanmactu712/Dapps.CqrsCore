@@ -86,15 +86,17 @@ namespace Dapps.CqrsSample
                     //    })
                     //    .AddHandlers();
 
-                    services.AddCqrsService(_configuration, config =>
-                        {
-                            config.SaveAll = Convert.ToBoolean(_configuration.GetSection("CoreSettings:SaveAll").Value);
-                        })
-                    //services.AddCqrsService(_configuration)
+                    services.AddCqrsService(_configuration,
+                            config =>
+                            {
+                                config.SaveAll =
+                                    Convert.ToBoolean(_configuration.GetSection("CoreSettings:SaveAll").Value);
+                            })
+                        //services.AddCqrsService(_configuration)
                         .AddCommandStoreDb<CommandDbContext>(option =>
                         {
                             option.UseSqlServer(_configuration.GetConnectionString("CommandDbConnection"),
-                                    migrationOps => migrationOps.MigrationsAssembly(currentAssembly));
+                                migrationOps => migrationOps.MigrationsAssembly(currentAssembly));
                             //option.UseInMemoryDatabase("CommandDb");
                         })
                         .AddEventStoreDb<EventDbContext>(option =>
@@ -103,8 +105,13 @@ namespace Dapps.CqrsSample
                                 migrationOps => migrationOps.MigrationsAssembly(currentAssembly));
                             //option.UseInMemoryDatabase("EventDb");
                         })
-                        //.AddSnapshotFeature()
-                        //.AddSnapshotStoreDb<SnapshotDbContext>(option => option.UseInMemoryDatabase("SnapshotDb"))
+                        .AddSnapshotFeature(option => option.Interval = 10)
+                        .AddSnapshotStoreDb<SnapshotDbContext>(option =>
+                        {
+                            option.UseSqlServer(_configuration.GetConnectionString("SnapshotDbConnection"),
+                                migrationOps => migrationOps.MigrationsAssembly(currentAssembly));
+                            //option.UseInMemoryDatabase("SnapshotDb");
+                        })
                         .AddHandlers();
 
                     //add db context & repository for read part of the application

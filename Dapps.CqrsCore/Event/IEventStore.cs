@@ -6,6 +6,9 @@ using System.Text;
 
 namespace Dapps.CqrsCore.Event
 {
+    /// <summary>
+    /// interface of event store
+    /// </summary>
     public interface IEventStore
     {
         /// <summary>

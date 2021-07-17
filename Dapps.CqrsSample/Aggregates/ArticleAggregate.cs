@@ -17,5 +17,12 @@ namespace Dapps.CqrsSample.Aggregates
 
             Apply(ev);
         }
+
+        public void UpdateArticle(Guid id, string title, string summary, string details, Guid userId, Guid commandId)
+        {
+            var ev = new ArticleUpdated(Id, title, summary, details, userId, commandId);
+
+            Apply(ev);
+        }
     }
 }

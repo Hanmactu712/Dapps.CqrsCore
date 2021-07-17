@@ -1,9 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Dapps.CqrsCore.Command
 {
+    /// <summary>
+    /// Interface of the command
+    /// </summary>
     public interface ICommand
     {
         /// <summary>

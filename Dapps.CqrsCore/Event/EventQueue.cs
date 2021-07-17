@@ -4,6 +4,9 @@ using System.Linq;
 
 namespace Dapps.CqrsCore.Event
 {
+    /// <summary>
+    /// Queue of event message
+    /// </summary>
     public class EventQueue : IEventQueue
     {
         private readonly Dictionary<string, List<Action<IEvent>>> _subscribers;
@@ -12,6 +15,11 @@ namespace Dapps.CqrsCore.Event
         {
             _subscribers = new Dictionary<string, List<Action<IEvent>>>();
         }
+
+        /// <summary>
+        /// publish a event to queue
+        /// </summary>
+        /// <param name="ev"></param>
         public void Publish(IEvent ev)
         {
             var name = ev.GetType().AssemblyQualifiedName;
@@ -26,6 +34,11 @@ namespace Dapps.CqrsCore.Event
             }
         }
 
+        /// <summary>
+        /// Subscribe a handler to queue for processing incoming events
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="action"></param>
         public void Subscribe<T>(Action<T> action) where T : IEvent
         {
             var name = typeof(T).AssemblyQualifiedName;

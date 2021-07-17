@@ -1,25 +1,50 @@
 ﻿using Dapps.CqrsCore.Utilities;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Dapps.CqrsCore.Command
 {
     public static class CommandExtensions
     {
+        /// <summary>
+        /// Convert serialized command entity from database to the operation command
+        /// </summary>
+        /// <param name="serializedCommand"></param>
+        /// <param name="serializer"></param>
+        /// <returns></returns>
         public static ICommand Deserialize(this SerializedCommand serializedCommand, ISerializer serializer)
         {
+            if (serializedCommand == null)
+                throw new ArgumentNullException(nameof(SerializedCommand));
+
+            if (serializer == null)
+                throw new ArgumentNullException(nameof(ISerializer));
+
             var data = serializer.Deserialize<ICommand>(serializedCommand.Data, Type.GetType(serializedCommand.Class));
+
+            if (data == null) return null;
 
             data.Id = serializedCommand.Id;
             //data.UserId = serializedCommand.UserId;
             data.Version = serializedCommand.Version;
-
             return data;
         }
 
+        /// <summary>
+        /// Convert command message to serialized command entity to persist in the database
+        /// </summary>
+        /// <param name="command"></param>
+        /// <param name="serializer"></param>
+        /// <param name="aggregateId"></param>
+        /// <param name="version"></param>
+        /// <returns></returns>
         public static SerializedCommand Serialize(this ICommand command, ISerializer serializer, Guid aggregateId, int? version)
         {
+            if (command == null)
+                throw new ArgumentNullException(nameof(ICommand));
+
+            if (serializer == null)
+                throw new ArgumentNullException(nameof(ISerializer));
+
             var data = serializer.Serialize(command, new[] { "Version", "SendScheduled", "SendStarted", "SendCompleted", "SendCancelled" });
 
             var serialized = new SerializedCommand

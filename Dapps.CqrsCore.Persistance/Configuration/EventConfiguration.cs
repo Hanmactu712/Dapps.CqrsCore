@@ -4,6 +4,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Dapps.CqrsCore.Persistence.Configuration
 {
+    /// <summary>
+    /// Event configuration for event entity type before saving to database
+    /// </summary>
     public class EventConfiguration : IEntityTypeConfiguration<SerializedEvent>
     {
         private readonly string _schema;

@@ -4,24 +4,45 @@ using System.Linq;
 using System.Text;
 using Dapps.CqrsCore.Persistence.Exceptions;
 using Dapps.CqrsCore.Snapshots;
+using Dapps.CqrsCore.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Dapps.CqrsCore.Persistence.Store
 {
+    /// <summary>
+    /// default snapshot store
+    /// </summary>
     public class SnapshotStore : ISnapshotStore
     {
-        private readonly ISnapshotDbContext _dbContext;
+        private readonly IServiceProvider _service;
 
+        private ISnapshotDbContext GetContext()
+        {
+            var context = _service.CreateScope().ServiceProvider.GetRequiredService<ISnapshotDbContext>();
+            if (context == null)
+                throw new ArgumentNullException(nameof(ISnapshotDbContext));
+            return context;
+        }
+        
         private readonly string _offlineStorageFolder;
 
         public SnapshotStore(IServiceProvider service, SnapshotOptions configuration)
         {
-            _dbContext = service.CreateScope().ServiceProvider.GetRequiredService<ISnapshotDbContext>();
+            _service = service;
+            //_dbContext = service.CreateScope().ServiceProvider.GetRequiredService<ISnapshotDbContext>();
+
+            //if (_dbContext == null)
+            //    throw new ArgumentNullException(nameof(ISnapshotDbContext));
+
             _offlineStorageFolder =
                 configuration?.LocalStorage ?? throw new ArgumentNullException(nameof(SnapshotOptions));
         }
-
+        
+        /// <summary>
+        /// Boxing to save data to offline store and remove it from event store
+        /// </summary>
+        /// <param name="aggregate"></param>
         public void Box(Guid aggregate)
         {
             // Create a new directory using the aggregate identifier as the folder name.
@@ -38,22 +59,45 @@ namespace Dapps.CqrsCore.Persistence.Store
             Delete(aggregate);
         }
 
+        /// <summary>
+        /// Get a snapshot based on aggregate id
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         public Snapshot Get(Guid id)
         {
-            return _dbContext.Snapshots.Find(id);
+            var dbContext = GetContext();
+            return dbContext.Snapshots.AsNoTracking().SingleOrDefault(e => e.AggregateId.Equals(id));
         }
 
+        /// <summary>
+        /// save data to snapshot store
+        /// </summary>
+        /// <param name="snapshot"></param>
         public void Save(Snapshot snapshot)
         {
-            if (!_dbContext.Snapshots.Any(sn => sn.Id.Equals(snapshot.Id)))
-                _dbContext.Snapshots.Add(snapshot);
+            var dbContext = GetContext();
+            var existingSnapshot = dbContext.Snapshots.AsNoTracking()
+                .SingleOrDefault(e => e.AggregateId.Equals(snapshot.AggregateId));
+
+            if (existingSnapshot == null)
+            {
+                dbContext.Snapshots.Add(snapshot);
+            }
             else
             {
-                _dbContext.Entry(snapshot).State = EntityState.Modified;
+                snapshot.MapTo(existingSnapshot);
+                dbContext.Entry(existingSnapshot).State = EntityState.Modified;
             }
 
-            _dbContext.SaveChanges();
+            dbContext.SaveChanges();
         }
+
+        /// <summary>
+        /// UnBoxing to load data from local storage and insert back to event store
+        /// </summary>
+        /// <param name="aggregate"></param>
+        /// <returns></returns>
         public Snapshot Unbox(Guid aggregate)
         {
             // The snapshot must exist!
@@ -64,24 +108,29 @@ namespace Dapps.CqrsCore.Persistence.Store
             // Read the serialized JSON into a new snapshot and return it.
             return new Snapshot
             {
-                Id = aggregate,
+                AggregateId = aggregate,
                 Version = 1,
                 State = File.ReadAllText(file, Encoding.Unicode)
             };
         }
 
         #region Methods (delete)
+        /// <summary>
+        /// Delete snapshot based on aggregate id
+        /// </summary>
+        /// <param name="aggregate"></param>
         private void Delete(Guid aggregate)
         {
+            var dbContext = GetContext();
+
             var snapShot = Get(aggregate);
-            if (snapShot != null)
-            {
-                _dbContext.Snapshots.Remove(snapShot);
-                _dbContext.SaveChanges();
-            }
+
+            if (snapShot == null) return;
+
+            dbContext.Snapshots.Remove(snapShot);
+            dbContext.SaveChanges();
         }
 
         #endregion
-
     }
 }

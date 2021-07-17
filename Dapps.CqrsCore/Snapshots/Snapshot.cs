@@ -7,8 +7,22 @@ namespace Dapps.CqrsCore.Snapshots
     /// </summary>
     public class Snapshot
     {
-        public Guid Id { get; set; }
+        /// <summary>
+        /// Aggregate Id
+        /// </summary>
+        public Guid AggregateId { get; set; }
+        /// <summary>
+        /// Version of event
+        /// </summary>
         public int Version { get; set; }
+        /// <summary>
+        /// State of event
+        /// </summary>
         public string State { get; set; }
+
+        /// <summary>
+        /// time to take the snapshot
+        /// </summary>
+        public DateTimeOffset Time { get; set; }
     }
 }

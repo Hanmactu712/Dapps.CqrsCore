@@ -2,6 +2,9 @@
 
 namespace Dapps.CqrsCore.Persistence.Read
 {
+    /// <summary>
+    /// Base class for data entity
+    /// </summary>
     public class BaseEntity
     {
         public int Version { get; set; }

@@ -6,6 +6,9 @@ using System.Linq;
 
 namespace Dapps.CqrsCore.Event
 {
+    /// <summary>
+    /// Repository for event to persist event to event store
+    /// </summary>
     public class EventRepository : IEventRepository
     {
         private readonly IEventStore _store;

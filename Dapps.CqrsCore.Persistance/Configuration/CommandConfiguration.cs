@@ -4,6 +4,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Dapps.CqrsCore.Persistence.Configuration
 {
+    /// <summary>
+    /// Command configuration for command entity type before saving to database
+    /// </summary>
     public class CommandConfiguration : IEntityTypeConfiguration<SerializedCommand>
     {
         private readonly string _schema;

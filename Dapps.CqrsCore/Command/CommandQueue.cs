@@ -13,8 +13,13 @@ namespace Dapps.CqrsCore.Command
 
         public CommandQueue(ICommandStore store, CommandStoreOptions option)
         {
-            _store = store;
+            _store = store ?? throw new ArgumentNullException(nameof(ICommandStore));
+            if (option == null)
+            {
+                throw new ArgumentNullException(nameof(CommandStoreOptions));
+            }
             _saveAll = option.SaveAll;
+
             _subscribers = new Dictionary<string, Action<ICommand>>();
         }
 
@@ -56,6 +61,10 @@ namespace Dapps.CqrsCore.Command
         public void Schedule(ICommand command, DateTimeOffset at)
         {
             var serializedCommand = _store.Serialize(command);
+
+            if(serializedCommand == null) 
+                throw new ArgumentNullException(nameof(CommandStoreOptions));
+
             serializedCommand.SendScheduled = at;
             serializedCommand.SendStatus = CommandStatus.Scheduled;
             _store.Save(serializedCommand, true);
@@ -122,6 +131,9 @@ namespace Dapps.CqrsCore.Command
         /// <param name="serializedCommand"></param>
         private void Execute(SerializedCommand serializedCommand)
         {
+            if (serializedCommand == null) 
+                throw new ArgumentNullException(nameof(SerializedCommand));
+
             serializedCommand.SendStarted = DateTimeOffset.UtcNow;
             serializedCommand.SendStatus = CommandStatus.Started;
             _store.Save(serializedCommand, false);

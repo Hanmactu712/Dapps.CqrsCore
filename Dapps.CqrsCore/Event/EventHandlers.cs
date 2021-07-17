@@ -7,6 +7,9 @@ using Dapps.CqrsCore.Utilities;
 
 namespace Dapps.CqrsCore.Event
 {
+    /// <summary>
+    /// Base class for event handler which subscribe many handlers to handle event message to event queue
+    /// </summary>
     public class EventHandlers
     {
         private readonly ILogger _logger;
@@ -15,7 +18,6 @@ namespace Dapps.CqrsCore.Event
             _logger = logger;
             var currentAsm = Assembly.GetCallingAssembly();
             RegisterHandlerForEvents(queue, currentAsm);
-
         }
 
         private void RegisterHandlerForEvents(IEventQueue queue, Assembly asm)

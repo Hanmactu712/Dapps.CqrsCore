@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 using Dapps.CqrsCore.Command;
 using Dapps.CqrsCore.Event;
+using Dapps.CqrsCore.Snapshots;
 using Dapps.CqrsSample.Aggregates;
 using Microsoft.Extensions.Logging;
 
@@ -25,7 +27,7 @@ namespace Dapps.CqrsSample.CommandHandlers
     {
         private readonly ILogger<CreateArticle> _logger;
         public CreateArticleHandler(ICommandQueue queue, IEventRepository eventRepository, IEventQueue eventQueue,
-            ILogger<CreateArticle> logger) : base(queue, eventRepository, eventQueue)
+            ILogger<CreateArticle> logger, SnapshotRepository snapshotRepository) : base(queue, eventRepository, eventQueue, snapshotRepository)
         {
             _logger = logger;
             _logger.LogInformation("Init event handler");
@@ -36,7 +38,7 @@ namespace Dapps.CqrsSample.CommandHandlers
             //Console.WriteLine("Save to database");
             _logger.LogInformation("=========Handle command message");
 
-            var aggregate = new ArticleAggregate(){Id = Guid.NewGuid()};
+            var aggregate = new ArticleAggregate() { Id = command.AggregateId != Guid.Empty ? command.AggregateId : Guid.NewGuid() };
 
             aggregate.CreateArticle(command.Title, command.Summary, command.Details, command.UserId, command.Id);
 

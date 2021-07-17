@@ -4,6 +4,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Dapps.CqrsCore.AspNetCore
 {
+    /// <summary>
+    /// Options need to be configured for CQRS service
+    /// </summary>
     public class CqrsServiceOptions
     {
         public static string Name = "CqrsServiceConfiguration";

@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
 using System.Reflection;
+using Dapps.CqrsCore.Snapshots;
 using Dapps.CqrsCore.Utilities;
 
 namespace Dapps.CqrsCore.Command
@@ -19,12 +20,14 @@ namespace Dapps.CqrsCore.Command
         private readonly ILogger _logger;
         private readonly IServiceProvider _services;
 
-        public CommandHandlers(ICommandQueue queue, IEventRepository eventRepository, IEventQueue eventQueue, ILogger logger, IServiceProvider services)
+        public CommandHandlers(ICommandQueue queue, IEventRepository eventRepository, IEventQueue eventQueue,
+            ILogger logger, IServiceProvider services, SnapshotRepository snapshotRepository)
         {
-            _eventQueue = eventQueue;
-            _logger = logger;
-            _services = services;
-            _repository = eventRepository;
+            _eventQueue = eventQueue ?? throw new ArgumentNullException(nameof(IEventQueue));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _services = services ?? throw new ArgumentNullException(nameof(IServiceProvider));
+            _repository = snapshotRepository ?? eventRepository ?? throw new ArgumentNullException(nameof(IEventRepository));
+
             var currentAsm = Assembly.GetCallingAssembly();
 
             //register Handle to command queue

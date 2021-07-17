@@ -4,6 +4,9 @@ using System.Collections.Generic;
 
 namespace Dapps.CqrsCore.Event
 {
+    /// <summary>
+    /// Interface of event repository
+    /// </summary>
     public interface IEventRepository
     {
 

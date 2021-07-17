@@ -17,5 +17,9 @@ namespace Dapps.CqrsSample.Aggregates
         {
             AssignStateValue(message);
         }
+        public void When(ArticleUpdated message)
+        {
+            AssignStateValue(message);
+        }
     }
 }

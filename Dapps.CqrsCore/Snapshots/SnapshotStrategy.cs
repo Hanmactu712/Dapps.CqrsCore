@@ -14,7 +14,7 @@ namespace Dapps.CqrsCore.Snapshots
         /// </summary>
         public SnapshotStrategy(SnapshotOptions option)
         {
-            _interval = option?.Interval ?? 100;
+            _interval = option?.Interval ?? 200;
         }
 
         /// <summary>

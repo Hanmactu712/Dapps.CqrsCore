@@ -121,19 +121,15 @@ namespace Dapps.CqrsCore.AspNetCore
         public static ICqrsServiceBuilder AddSnapshotFeature(this ICqrsServiceBuilder builder,
             Action<SnapshotOptions> configure = null)
         {
-            //var option = new SnapshotOptions();
-            //configure?.Invoke(option);
+            var option = new SnapshotOptions();
+            configure?.Invoke(option);
 
-            //builder.Services.AddSingleton(option);
-            //builder.Services.AddScoped<ISnapshotDbContext, EventSourcingDbContext>();
+            builder.Services.Replace(new ServiceDescriptor(typeof(SnapshotOptions), option));
 
             builder.Services.AddSingleton(typeof(ISnapshotStrategy), typeof(SnapshotStrategy));
             builder.Services.AddSingleton(typeof(ISnapshotStore), typeof(SnapshotStore));
 
-            //builder.Services.AddScoped<SnapshotRepository>();
-
-            builder.Services.Replace(new ServiceDescriptor(typeof(IEventRepository), typeof(SnapshotRepository),
-                ServiceLifetime.Singleton));
+            builder.Services.AddSingleton<SnapshotRepository>();
 
             return builder;
         }
@@ -150,11 +146,6 @@ namespace Dapps.CqrsCore.AspNetCore
         {
             if (cqrsServiceOptions != null)
                 services.Configure(cqrsServiceOptions);
-
-            //var commandOption = new CommandStoreOptions();
-            //var cqrsOption = new CqrsServiceOptions();
-            //cqrsServiceOptions(cqrsOption);
-            //commandOption.SaveAll = cqrsOption.SaveAll;
 
             var builder = services.AddCqrsServiceBuilder();
 

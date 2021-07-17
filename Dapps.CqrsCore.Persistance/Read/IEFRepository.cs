@@ -5,6 +5,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Dapps.CqrsCore.Persistence.Read
 {
+    /// <summary>
+    /// Interface of generic repository for create/update/delete/listing entities
+    /// </summary>
+    /// <typeparam name="TEntity"></typeparam>
+    /// <typeparam name="TDbContext"></typeparam>
     public interface IEfRepository<TEntity, TDbContext> where TEntity : class where TDbContext : DbContext
     {
         TEntity GetById(Guid id);

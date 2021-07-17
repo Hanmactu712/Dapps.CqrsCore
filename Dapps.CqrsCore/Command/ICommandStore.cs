@@ -4,8 +4,14 @@ using System.Collections.Generic;
 
 namespace Dapps.CqrsCore.Command
 {
+    /// <summary>
+    /// Interface of a command store which have the responsibility to persist command
+    /// </summary>
     public interface ICommandStore
     {
+        /// <summary>
+        /// Serializer using to serialize command & event to persist
+        /// </summary>
         ISerializer Serializer { get; }
 
         /// <summary>

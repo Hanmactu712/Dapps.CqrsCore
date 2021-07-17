@@ -4,6 +4,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Dapps.CqrsCore.Persistence.Configuration
 {
+    /// <summary>
+    /// Aggregate configuration for aggregate entity type before saving to database
+    /// </summary>
     public class AggregateConfiguration : IEntityTypeConfiguration<SerializedAggregate>
     {
         private readonly string _schema;

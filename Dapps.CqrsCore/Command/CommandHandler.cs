@@ -1,22 +1,29 @@
 ﻿using Dapps.CqrsCore.Aggregate;
 using Dapps.CqrsCore.Event;
-using Microsoft.Extensions.Logging;
 using System;
+using Dapps.CqrsCore.Snapshots;
 
 namespace Dapps.CqrsCore.Command
 {
     /// <summary>
-    /// Base command handlers which register handlers to command queue and commit changes changes to event sourcing as well as public event for subscribers
+    /// Base command handler which register handler for a single command to command queue and commit changes changes to event sourcing as well as public event for subscribers
     /// </summary>
     public abstract class CommandHandler<TCommand> : ICommandHandler<TCommand> where TCommand : ICommand
     {
         private readonly IEventRepository _repository;
         private readonly IEventQueue _eventQueue;
 
-        protected CommandHandler(ICommandQueue queue, IEventRepository eventRepository, IEventQueue eventQueue)
+        protected CommandHandler(ICommandQueue queue, IEventRepository eventRepository, IEventQueue eventQueue, SnapshotRepository snapshotRepository = null)
         {
-            _eventQueue = eventQueue;
-            _repository = eventRepository;
+            _eventQueue = eventQueue ?? throw new ArgumentNullException(nameof(ICommandQueue));
+
+            //using snapshot repository if any, otherwise using normal event repository
+            _repository = snapshotRepository ??
+                          eventRepository ?? throw new ArgumentNullException(nameof(IEventRepository));
+
+            if (queue == null)
+                throw new ArgumentNullException(nameof(IEventRepository));
+
             queue.Subscribe<TCommand>(Handle);
         }
 

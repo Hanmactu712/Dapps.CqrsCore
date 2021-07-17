@@ -2,6 +2,9 @@
 
 namespace Dapps.CqrsCore.Event
 {
+    /// <summary>
+    /// Interface for event message
+    /// </summary>
     public interface IEvent
     {
         /// <summary>

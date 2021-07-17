@@ -90,7 +90,7 @@ namespace Dapps.CqrsCore.Snapshots
             if (snapshot == null)
                 return -1;
 
-            aggregate.Id = snapshot.Id;
+            aggregate.Id = snapshot.AggregateId;
             aggregate.Version = snapshot.Version;
             aggregate.State = _eventStore.Serializer.Deserialize<AggregateState>(snapshot.State, aggregate.CreateState().GetType());
 
@@ -107,9 +107,10 @@ namespace Dapps.CqrsCore.Snapshots
 
             var snapshot = new Snapshot
             {
-                Id = aggregate.Id,
+                AggregateId = aggregate.Id,
                 Version = aggregate.Version,
-                State = _eventStore.Serializer.Serialize<AggregateState>(aggregate.State)
+                State = _eventStore.Serializer.Serialize(aggregate.State),
+                Time = DateTimeOffset.Now
             };
 
             snapshot.Version = aggregate.Version + aggregate.GetUncommittedChanges().Count;

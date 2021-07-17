@@ -9,14 +9,20 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Dapps.CqrsCore.Persistence.Store
 {
+    /// <summary>
+    /// default event store
+    /// </summary>
     public class EventStore : IEventStore
     {
         private readonly IEventDbContext _dbContext;
 
         public EventStore(ISerializer serializer, IServiceProvider service)
         {
-            Serializer = serializer;
+            Serializer = serializer ?? throw new ArgumentNullException(nameof(ISerializer));
             _dbContext = service.CreateScope().ServiceProvider.GetRequiredService<IEventDbContext>();
+
+            if (_dbContext == null)
+                throw new ArgumentNullException(nameof(IEventDbContext));
         }
 
         public ISerializer Serializer { get; }

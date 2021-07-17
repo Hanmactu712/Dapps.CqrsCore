@@ -1,5 +1,8 @@
 ﻿namespace Dapps.CqrsCore.Event
 {
+    /// <summary>
+    /// Base event handler which register handler for a single event which delivered from event queue
+    /// </summary>
     public abstract class EventHandler<TEvent> : IEventHandler<TEvent> where TEvent : IEvent
     {
         //private readonly ILogger _logger;
