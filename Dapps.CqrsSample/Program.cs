@@ -2,6 +2,9 @@
 using System.IO;
 using System.Reflection;
 using Dapps.CqrsCore.AspNetCore;
+using Dapps.CqrsCore.Persistence.Read;
+using Dapps.CqrsSample.Data;
+using Dapps.CqrsSample.EventSourcing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -56,7 +59,6 @@ namespace Dapps.CqrsSample
                 .ConfigureHostConfiguration(configHost =>
                 {
                     configHost.SetBasePath(Directory.GetCurrentDirectory());
-                    //configHost.AddJsonFile("E:\\DUCDD\\CQRS\\Core\\Dapps.CqrsSample\\bin\\Debug\\net5.0\\hostsettings.json", optional: true);
                     configHost.AddJsonFile($"{rootPath}\\hostsettings.json", optional: true);
                     configHost.AddEnvironmentVariables(prefix: "PREFIX_");
                     configHost.AddCommandLine(args);
@@ -65,9 +67,6 @@ namespace Dapps.CqrsSample
                 {
                     configuration.Sources.Clear();
                     IHostEnvironment env = hostContext.HostingEnvironment;
-                    //configuration.AddJsonFile("E:\\DUCDD\\CQRS\\Core\\Dapps.CqrsSample\\bin\\Debug\\net5.0\\appsettings.json", optional: false, reloadOnChange: true)
-                    //    .AddJsonFile($"E:\\DUCDD\\CQRS\\Core\\Dapps.CqrsSample\\bin\\Debug\\net5.0\\appsettings.{env.EnvironmentName}.json", true, true);
-
                     configuration.AddJsonFile($"{rootPath}\\appsettings.json", optional: false, reloadOnChange: true)
                         .AddJsonFile($"{rootPath}\\appsettings.{env.EnvironmentName}.json", true, true);
 
@@ -77,15 +76,46 @@ namespace Dapps.CqrsSample
                 {
                     var currentAssembly = Assembly.GetAssembly(typeof(Program)).GetName().Name;
 
-                    services.AddCqrsService(_configuration, option =>
-                    {
-                        option.SaveAll = Convert.ToBoolean(_configuration.GetSection("CoreSettings:SaveAll").Value);
-                        //option.DbContextOption = sql =>
-                        //    sql.UseSqlServer(_configuration.GetConnectionString("CqrsConnection"),
-                        //        migrationOps => migrationOps.MigrationsAssembly(currentAssembly));
-                        option.DbContextOption = sql => sql.UseInMemoryDatabase("CqrsConnection");
+                    //services.AddCqrsService(_configuration, option =>
+                    //    {
+                    //        option.SaveAll = Convert.ToBoolean(_configuration.GetSection("CoreSettings:SaveAll").Value);
+                    //        //option.DbContextOption = sql =>
+                    //        //    sql.UseSqlServer(_configuration.GetConnectionString("CqrsConnection"),
+                    //        //        migrationOps => migrationOps.MigrationsAssembly(currentAssembly));
+                    //        option.DbContextOption = sql => sql.UseInMemoryDatabase("CqrsConnection");
+                    //    })
+                    //    .AddHandlers();
 
-                    }).AddHandlers();
+                    services.AddCqrsService(_configuration, config =>
+                        {
+                            config.SaveAll = Convert.ToBoolean(_configuration.GetSection("CoreSettings:SaveAll").Value);
+                        })
+                    //services.AddCqrsService(_configuration)
+                        .AddCommandStoreDb<CommandDbContext>(option =>
+                        {
+                            option.UseSqlServer(_configuration.GetConnectionString("CommandDbConnection"),
+                                    migrationOps => migrationOps.MigrationsAssembly(currentAssembly));
+                            //option.UseInMemoryDatabase("CommandDb");
+                        })
+                        .AddEventStoreDb<EventDbContext>(option =>
+                        {
+                            option.UseSqlServer(_configuration.GetConnectionString("EventDbConnection"),
+                                migrationOps => migrationOps.MigrationsAssembly(currentAssembly));
+                            //option.UseInMemoryDatabase("EventDb");
+                        })
+                        //.AddSnapshotFeature()
+                        //.AddSnapshotStoreDb<SnapshotDbContext>(option => option.UseInMemoryDatabase("SnapshotDb"))
+                        .AddHandlers();
+
+                    //add db context & repository for read part of the application
+                    services.AddDbContext<ApplicationDbContext>(option =>
+                    {
+                        option.UseSqlServer(_configuration.GetConnectionString("ApplicationDbConnection"),
+                            migrationOps => migrationOps.MigrationsAssembly(currentAssembly));
+                        //option.UseInMemoryDatabase("ApplicationDb");
+                    });
+
+                    services.AddScoped<IEfRepository<Article, ApplicationDbContext>, EfRepository<Article, ApplicationDbContext>>();
 
                     services.AddHostedService<HostedService>();
                 });

@@ -5,6 +5,7 @@ using Dapps.CqrsCore.Aggregate;
 using Dapps.CqrsCore.Event;
 using Dapps.CqrsCore.Utilities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Dapps.CqrsCore.Persistence.Store
 {
@@ -12,10 +13,10 @@ namespace Dapps.CqrsCore.Persistence.Store
     {
         private readonly IEventDbContext _dbContext;
 
-        public EventStore(ISerializer serializer, IEventDbContext dbContext)
+        public EventStore(ISerializer serializer, IServiceProvider service)
         {
             Serializer = serializer;
-            _dbContext = dbContext;
+            _dbContext = service.CreateScope().ServiceProvider.GetRequiredService<IEventDbContext>();
         }
 
         public ISerializer Serializer { get; }

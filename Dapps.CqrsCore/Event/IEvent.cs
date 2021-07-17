@@ -21,5 +21,9 @@ namespace Dapps.CqrsCore.Event
         /// Reference to the source which event is fired. It may command Id or other source
         /// </summary>
         Guid ReferenceId { get; set; }
+        /// <summary>
+        /// indicate who fired the event
+        /// </summary>
+        Guid UserId { get; set; }
     }
 }

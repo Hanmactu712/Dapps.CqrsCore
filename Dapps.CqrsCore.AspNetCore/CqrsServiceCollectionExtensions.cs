@@ -41,7 +41,7 @@ namespace Dapps.CqrsCore.AspNetCore
 
         private static ICqrsServiceBuilder AddDefaultSerializer(this ICqrsServiceBuilder builder)
         {
-            builder.Services.AddScoped(typeof(ISerializer), typeof(Serializer));
+            builder.Services.AddSingleton(typeof(ISerializer), typeof(Serializer));
             return builder;
         }
 
@@ -127,13 +127,13 @@ namespace Dapps.CqrsCore.AspNetCore
             //builder.Services.AddSingleton(option);
             //builder.Services.AddScoped<ISnapshotDbContext, EventSourcingDbContext>();
 
-            builder.Services.AddScoped(typeof(ISnapshotStrategy), typeof(SnapshotStrategy));
-            builder.Services.AddScoped(typeof(ISnapshotStore), typeof(SnapshotStore));
+            builder.Services.AddSingleton(typeof(ISnapshotStrategy), typeof(SnapshotStrategy));
+            builder.Services.AddSingleton(typeof(ISnapshotStore), typeof(SnapshotStore));
 
             //builder.Services.AddScoped<SnapshotRepository>();
 
             builder.Services.Replace(new ServiceDescriptor(typeof(IEventRepository), typeof(SnapshotRepository),
-                ServiceLifetime.Scoped));
+                ServiceLifetime.Singleton));
 
             return builder;
         }
@@ -148,14 +148,13 @@ namespace Dapps.CqrsCore.AspNetCore
         public static ICqrsServiceBuilder AddCqrsService(this IServiceCollection services, IConfiguration configuration,
             Action<CqrsServiceOptions> cqrsServiceOptions = null)
         {
-            services.Configure(cqrsServiceOptions);
+            if (cqrsServiceOptions != null)
+                services.Configure(cqrsServiceOptions);
 
             //var commandOption = new CommandStoreOptions();
             //var cqrsOption = new CqrsServiceOptions();
             //cqrsServiceOptions(cqrsOption);
             //commandOption.SaveAll = cqrsOption.SaveAll;
-
-
 
             var builder = services.AddCqrsServiceBuilder();
 
@@ -204,7 +203,7 @@ namespace Dapps.CqrsCore.AspNetCore
         public static ICqrsServiceBuilder AddSerializer<TSerializer>(this ICqrsServiceBuilder builder)
             where TSerializer : class, ISerializer
         {
-            var descriptor = new ServiceDescriptor(typeof(ISerializer), typeof(TSerializer), ServiceLifetime.Scoped);
+            var descriptor = new ServiceDescriptor(typeof(ISerializer), typeof(TSerializer), ServiceLifetime.Singleton);
             builder.Services.Replace(descriptor);
 
             //builder.Services.AddScoped(typeof(ISerializer), typeof(TSerializer));
@@ -274,7 +273,7 @@ namespace Dapps.CqrsCore.AspNetCore
             where TQueue : IEventQueue
         {
             builder.Services.Replace(new ServiceDescriptor(typeof(IEventQueue), typeof(TQueue),
-                ServiceLifetime.Scoped));
+                ServiceLifetime.Singleton));
             return builder;
         }
 
@@ -288,7 +287,7 @@ namespace Dapps.CqrsCore.AspNetCore
             where TQueue : ICommandQueue
         {
             builder.Services.Replace(new ServiceDescriptor(typeof(ICommandQueue), typeof(TQueue),
-                ServiceLifetime.Scoped));
+                ServiceLifetime.Singleton));
             return builder;
         }
 

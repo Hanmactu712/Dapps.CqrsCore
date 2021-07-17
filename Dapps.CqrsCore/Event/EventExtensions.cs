@@ -36,6 +36,7 @@ namespace Dapps.CqrsCore.Event
                 Class = ev.GetType().AssemblyQualifiedName,
                 Type = ev.GetType().Name,
                 Data = data,
+                UserId = ev.UserId,
                 ReferenceId = ev.ReferenceId
             };
 

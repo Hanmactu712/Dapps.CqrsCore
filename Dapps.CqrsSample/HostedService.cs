@@ -16,26 +16,26 @@ namespace Dapps.CqrsSample
         private readonly IServiceProvider _provider;
         private ICommandHandler<CreateArticle> _cmdHandler;
         private IEventHandler<ArticleCreated> _eventHandler;
-        private ICommandQueue _queue;
-        private ILogger<HostedService> _logger;
+        private readonly ICommandQueue _queue;
+        private readonly ILogger<HostedService> _logger;
 
-        public HostedService(IServiceProvider provider, ICommandHandler<CreateArticle> cmdHandler,
-            IEventHandler<ArticleCreated> eventHandler, ILogger<HostedService> logger, ICommandQueue queue)
+        public HostedService(IServiceProvider provider, ILogger<HostedService> logger, ICommandQueue queue)
         {
             _provider = provider;
-            _cmdHandler = cmdHandler;
-            _eventHandler = eventHandler;
+            _cmdHandler = provider.GetRequiredService<ICommandHandler<CreateArticle>>();
+            _eventHandler = provider.GetRequiredService<IEventHandler<ArticleCreated>>();
             _logger = logger;
             _queue = queue;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            
-
+            //test with sending a chain of commands
             for (int i = 0; i < 10; i++)
             {
-                var command = new CreateArticle($"Test title {i} {DateTime.Now}", $"Test summary {DateTime.Now}", $"Test details {DateTime.Now}");
+                var command = new CreateArticle($"Test title {i} {DateTime.Now}", $"Test summary {DateTime.Now}",
+                    $"Test details {DateTime.Now}", Guid.NewGuid());
+
                 _logger.LogInformation($"Send test command {command.Title}");
                 _queue.Send(command);
                 _logger.LogInformation($"Test command {command.Title} is sent");

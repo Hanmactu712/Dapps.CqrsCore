@@ -11,9 +11,9 @@ namespace Dapps.CqrsSample.Aggregates
             return new ArticleState();
         }
 
-        public void CreateArticle(string title, string summary, string details)
+        public void CreateArticle(string title, string summary, string details, Guid userId, Guid commandId)
         {
-            var ev = new ArticleCreated(Id, title, summary, details);
+            var ev = new ArticleCreated(Id, title, summary, details, userId, commandId);
 
             Apply(ev);
         }

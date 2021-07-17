@@ -13,7 +13,6 @@ namespace Dapps.CqrsCore.Aggregate
         public AggregateState State { get; set; }
 
         public Guid Id { get; set; }
-
         public int Version { get; set; }
 
         public abstract AggregateState CreateState();

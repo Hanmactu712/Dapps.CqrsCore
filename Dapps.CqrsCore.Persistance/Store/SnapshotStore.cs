@@ -5,6 +5,7 @@ using System.Text;
 using Dapps.CqrsCore.Persistence.Exceptions;
 using Dapps.CqrsCore.Snapshots;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Dapps.CqrsCore.Persistence.Store
 {
@@ -14,9 +15,9 @@ namespace Dapps.CqrsCore.Persistence.Store
 
         private readonly string _offlineStorageFolder;
 
-        public SnapshotStore(ISnapshotDbContext dbContext, SnapshotOptions configuration)
+        public SnapshotStore(IServiceProvider service, SnapshotOptions configuration)
         {
-            _dbContext = dbContext;
+            _dbContext = service.CreateScope().ServiceProvider.GetRequiredService<ISnapshotDbContext>();
             _offlineStorageFolder =
                 configuration?.LocalStorage ?? throw new ArgumentNullException(nameof(SnapshotOptions));
         }
@@ -53,7 +54,6 @@ namespace Dapps.CqrsCore.Persistence.Store
 
             _dbContext.SaveChanges();
         }
-
         public Snapshot Unbox(Guid aggregate)
         {
             // The snapshot must exist!
@@ -71,7 +71,6 @@ namespace Dapps.CqrsCore.Persistence.Store
         }
 
         #region Methods (delete)
-
         private void Delete(Guid aggregate)
         {
             var snapShot = Get(aggregate);

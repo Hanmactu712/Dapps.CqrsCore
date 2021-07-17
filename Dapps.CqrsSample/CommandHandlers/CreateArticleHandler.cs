@@ -12,11 +12,12 @@ namespace Dapps.CqrsSample.CommandHandlers
         public readonly string Summary;
         public readonly string Details;
 
-        public CreateArticle(string title, string summary, string details)
+        public CreateArticle(string title, string summary, string details, Guid userId)
         {
             Title = title;
             Summary = summary;
             Details = details;
+            UserId = userId;
         }
     }
 
@@ -37,7 +38,7 @@ namespace Dapps.CqrsSample.CommandHandlers
 
             var aggregate = new ArticleAggregate(){Id = Guid.NewGuid()};
 
-            aggregate.CreateArticle(command.Title, command.Summary, command.Details);
+            aggregate.CreateArticle(command.Title, command.Summary, command.Details, command.UserId, command.Id);
 
             _logger.LogInformation("=========Fire event to event handler");
 

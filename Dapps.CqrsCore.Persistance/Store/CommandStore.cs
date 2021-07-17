@@ -4,6 +4,7 @@ using System.Linq;
 using Dapps.CqrsCore.Command;
 using Dapps.CqrsCore.Utilities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Dapps.CqrsCore.Persistence.Store
 {
@@ -12,10 +13,10 @@ namespace Dapps.CqrsCore.Persistence.Store
         //private readonly DbContextOptions<PersistenceDBContext> _dbContextOptions;
         private readonly ICommandDbContext _dbContext;
 
-        public CommandStore(ISerializer serializer, ICommandDbContext dbContext)
+        public CommandStore(ISerializer serializer, IServiceProvider service)
         {
             Serializer = serializer;
-            _dbContext = dbContext;
+            _dbContext = service.CreateScope().ServiceProvider.GetRequiredService<ICommandDbContext>();
         }
 
         public ISerializer Serializer { get; }

@@ -44,7 +44,7 @@ namespace Dapps.CqrsCore.Event
         }
 
         /// <summary>
-        /// Loads an aggregate instance from the full history of events for that aggreate.
+        /// Loads an aggregate instance from the full history of events for that aggregate.
         /// </summary>
         private T Rehydrate<T>(Guid id) where T : AggregateRoot
         {
