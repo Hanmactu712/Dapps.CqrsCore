@@ -11,53 +11,54 @@ namespace Dapps.CqrsCore.Persistence.Store
     /// <summary>
     /// Default command store
     /// </summary>
-    public class CommandStore : ICommandStore
+    public class CommandStore : BaseStore<ICommandDbContext>, ICommandStore
     {
-        //private readonly DbContextOptions<PersistenceDBContext> _dbContextOptions;
-        private readonly ICommandDbContext _dbContext;
+        //private readonly DbContextOptions<PersistenceDBContext> ContextOptions;
+        //private readonly ICommandDbContext Context;
 
-        public CommandStore(ISerializer serializer, IServiceProvider service)
+        public CommandStore(ISerializer serializer, IServiceProvider service):base(service)
         {
             Serializer = serializer ?? throw new ArgumentNullException(nameof(ISerializer));
-            _dbContext = service.CreateScope().ServiceProvider.GetRequiredService<ICommandDbContext>();
-            if(_dbContext == null)
-                throw new ArgumentNullException(nameof(ICommandDbContext));
+            //Context = service.CreateScope().ServiceProvider.GetRequiredService<ICommandDbContext>();
+            //if(Context == null)
+            //    throw new ArgumentNullException(nameof(ICommandDbContext));
         }
 
         public ISerializer Serializer { get; }
 
         public bool Exists(Guid commandId)
         {
-            return _dbContext.Commands.Any(c => c.Id.Equals(commandId));
+            return GetDbContext().Commands.Any(c => c.Id.Equals(commandId));
         }
 
         public SerializedCommand Get(Guid commandId)
         {
-            return _dbContext.Commands.AsNoTracking().FirstOrDefault(c => c.Id.Equals(commandId));
+            return GetDbContext().Commands.AsNoTracking().FirstOrDefault(c => c.Id.Equals(commandId));
         }
 
         public IEnumerable<SerializedCommand> GetExpired(DateTimeOffset at)
         {
 
-            return _dbContext.Commands.AsNoTracking().Where(c => c.SendStatus.Equals(CommandStatus.Scheduled));
+            return GetDbContext().Commands.AsNoTracking().Where(c => c.SendStatus.Equals(CommandStatus.Scheduled));
         }
 
         public void Save(SerializedCommand command, bool isNew)
         {
+            var dbContext = GetDbContext();
             if (isNew)
             {
                 if (command.Id.Equals(Guid.Empty))
                     command.Id = Guid.NewGuid();
-                _dbContext.Commands.Add(command);
+                dbContext.Commands.Add(command);
             }
             else
             {
-                var entity = _dbContext.Entry(command);
+                var entity = dbContext.Entry(command);
                 entity.State = EntityState.Modified;
-                //_dbContext.Commands
+                //Context.Commands
             }
 
-            _dbContext.SaveChanges();
+            dbContext.SaveChanges();
         }
 
         public SerializedCommand Serialize(ICommand command)

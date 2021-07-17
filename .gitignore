@@ -363,3 +363,4 @@ MigrationBackup/
 FodyWeavers.xsd
 /Dapps.CqrsCore/nuget.config
 /Dapps.CqrsCore.Persistance/nuget.config
+/Dapps.CqrsCore.AspNetCore/nuget.config

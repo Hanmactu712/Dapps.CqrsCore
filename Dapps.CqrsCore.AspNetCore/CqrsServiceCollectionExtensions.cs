@@ -161,18 +161,25 @@ namespace Dapps.CqrsCore.AspNetCore
                 configuration.GetSection(CqrsServiceOptions.Name).Bind(options);
             }
 
-            var commandOption = new CommandStoreOptions() { SaveAll = options.SaveAll };
+            var commandOption = new CommandStoreOptions()
+            { SaveAll = options.SaveAll, CommandLocalStorage = options.CommandLocalStorage };
 
             var snapshotOption = new SnapshotOptions()
             {
-                Interval = options.Snapshot.Interval,
-                LocalStorage = options.Snapshot.LocalStorage
+                Interval = options.Interval,
+                LocalStorage = options.SnapshotLocalStorage
             };
 
-            Console.WriteLine($"====== CqrsServiceOptions: {options.SaveAll} - Interval: {snapshotOption.Interval} - LocalStorage {snapshotOption.LocalStorage}");
+            var eventStoreOption = new EventStoreOptions()
+            {
+                EventLocalStorage = options.EventLocalStorage
+            };
+
+            //Console.WriteLine($"====== CqrsServiceOptions: {options.SaveAll} - Interval: {snapshotOption.Interval} - LocalStorage {snapshotOption.LocalStorage}");
 
             builder.Services.AddSingleton(commandOption);
             builder.Services.AddSingleton(snapshotOption);
+            builder.Services.AddSingleton(eventStoreOption);
 
             builder.AddDefaultSerializer()
                 .AddDefaultEventSourcingDb(configuration, options.DbContextOption)

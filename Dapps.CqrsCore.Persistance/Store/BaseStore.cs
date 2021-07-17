@@ -12,15 +12,12 @@ namespace Dapps.CqrsCore.Persistence.Store
             _service = service;
         }
 
-        protected virtual TContext DbContext
+        protected virtual TContext GetDbContext()
         {
-            get
-            {
-                var context = _service.CreateScope().ServiceProvider.GetRequiredService<TContext>();
-                if (context == null)
-                    throw new ArgumentNullException(nameof(TContext));
-                return context;
-            }
+            var context = _service.CreateScope().ServiceProvider.GetRequiredService<TContext>();
+            if (context == null)
+                throw new ArgumentNullException(nameof(TContext));
+            return context;
         }
     }
 }

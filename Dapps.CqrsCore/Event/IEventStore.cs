@@ -2,7 +2,6 @@
 using Dapps.CqrsCore.Utilities;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Dapps.CqrsCore.Event
 {

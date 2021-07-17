@@ -56,5 +56,7 @@ namespace Dapps.CqrsCore.Command
         /// </summary>
         /// <param name="message"></param>
         public abstract void Handle(TCommand message);
+
+        protected IEventRepository EventRepository => _repository;
     }
 }

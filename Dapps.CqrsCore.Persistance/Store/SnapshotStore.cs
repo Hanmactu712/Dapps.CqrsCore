@@ -13,28 +13,12 @@ namespace Dapps.CqrsCore.Persistence.Store
     /// <summary>
     /// default snapshot store
     /// </summary>
-    public class SnapshotStore : ISnapshotStore
+    public class SnapshotStore : BaseStore<ISnapshotDbContext>, ISnapshotStore
     {
-        private readonly IServiceProvider _service;
-
-        private ISnapshotDbContext GetContext()
-        {
-            var context = _service.CreateScope().ServiceProvider.GetRequiredService<ISnapshotDbContext>();
-            if (context == null)
-                throw new ArgumentNullException(nameof(ISnapshotDbContext));
-            return context;
-        }
-        
         private readonly string _offlineStorageFolder;
 
-        public SnapshotStore(IServiceProvider service, SnapshotOptions configuration)
+        public SnapshotStore(IServiceProvider service, SnapshotOptions configuration) : base(service)
         {
-            _service = service;
-            //_dbContext = service.CreateScope().ServiceProvider.GetRequiredService<ISnapshotDbContext>();
-
-            //if (_dbContext == null)
-            //    throw new ArgumentNullException(nameof(ISnapshotDbContext));
-
             _offlineStorageFolder =
                 configuration?.LocalStorage ?? throw new ArgumentNullException(nameof(SnapshotOptions));
         }
@@ -51,6 +35,10 @@ namespace Dapps.CqrsCore.Persistence.Store
                 Directory.CreateDirectory(path);
 
             // Serialize the event stream and write it to an external file.
+            var snapshot = Get(aggregate);
+            
+            if (snapshot == null) return;
+
             var json = Get(aggregate).State;
             var file = Path.Combine(path, "Snapshot.json");
             File.WriteAllText(file, json, Encoding.Unicode);
@@ -66,7 +54,7 @@ namespace Dapps.CqrsCore.Persistence.Store
         /// <returns></returns>
         public Snapshot Get(Guid id)
         {
-            var dbContext = GetContext();
+            var dbContext = GetDbContext();
             return dbContext.Snapshots.AsNoTracking().SingleOrDefault(e => e.AggregateId.Equals(id));
         }
 
@@ -76,7 +64,7 @@ namespace Dapps.CqrsCore.Persistence.Store
         /// <param name="snapshot"></param>
         public void Save(Snapshot snapshot)
         {
-            var dbContext = GetContext();
+            var dbContext = GetDbContext();
             var existingSnapshot = dbContext.Snapshots.AsNoTracking()
                 .SingleOrDefault(e => e.AggregateId.Equals(snapshot.AggregateId));
 
@@ -121,7 +109,7 @@ namespace Dapps.CqrsCore.Persistence.Store
         /// <param name="aggregate"></param>
         private void Delete(Guid aggregate)
         {
-            var dbContext = GetContext();
+            var dbContext = GetDbContext();
 
             var snapShot = Get(aggregate);
 

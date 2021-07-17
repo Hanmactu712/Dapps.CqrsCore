@@ -17,8 +17,7 @@ namespace Dapps.CqrsCore.Event
         {
             _store = store ?? throw new ArgumentNullException(nameof(store));
         }
-
-
+        
         /// <summary>
         /// Gets an aggregate from the event store.
         /// </summary>
