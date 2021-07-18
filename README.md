@@ -116,9 +116,9 @@ In case you want to using your owner implementation of such Serializer, Command 
        config =>
        {
            config.SaveAll = true;
-           config.CommandLocalStorage = "C:\\Users\\ducdd\\OneDrive\\Desktop\\LocalStorage";
-           config.EventLocalStorage = "C:\\Users\\ducdd\\OneDrive\\Desktop\\LocalStorage";
-           config.SnapshotLocalStorage = "C:\\Users\\ducdd\\OneDrive\\Desktop\\LocalStorage";
+           config.CommandLocalStorage = "D:\\LocalStorage";
+           config.EventLocalStorage = "D:\\LocalStorage";
+           config.SnapshotLocalStorage = "D:\\LocalStorage";
 
            config.DbContextOption = sql =>
                sql.UseSqlServer(_configuration.GetConnectionString("CqrsConnection"),
@@ -139,9 +139,9 @@ You can also change the default configuration for store database to separate the
        config =>
        {
            config.SaveAll = true;
-           config.CommandLocalStorage = "C:\\Users\\ducdd\\OneDrive\\Desktop\\LocalStorage";
-           config.EventLocalStorage = "C:\\Users\\ducdd\\OneDrive\\Desktop\\LocalStorage";
-           config.SnapshotLocalStorage = "C:\\Users\\ducdd\\OneDrive\\Desktop\\LocalStorage";
+           config.CommandLocalStorage = "D:\\LocalStorage";
+           config.EventLocalStorage = "D:\\LocalStorage";
+           config.SnapshotLocalStorage = "D:\\LocalStorage";
 
            config.DbContextOption = sql =>
                sql.UseSqlServer(_configuration.GetConnectionString("CqrsConnection"),
@@ -169,9 +169,9 @@ The Dapps.CqrsCore.AspNetCore project also provides a mechanism for snapshoting 
        config =>
        {
            config.SaveAll = true;
-           config.CommandLocalStorage = "C:\\Users\\ducdd\\OneDrive\\Desktop\\LocalStorage";
-           config.EventLocalStorage = "C:\\Users\\ducdd\\OneDrive\\Desktop\\LocalStorage";
-           config.SnapshotLocalStorage = "C:\\Users\\ducdd\\OneDrive\\Desktop\\LocalStorage";
+           config.CommandLocalStorage = "D:\\LocalStorage";
+           config.EventLocalStorage = "D:\\LocalStorage";
+           config.SnapshotLocalStorage = "D:\\LocalStorage";
 
            config.DbContextOption = sql =>
                sql.UseSqlServer(_configuration.GetConnectionString("CqrsConnection"),
@@ -180,7 +180,7 @@ The Dapps.CqrsCore.AspNetCore project also provides a mechanism for snapshoting 
       .AddSnapshotFeature(option =>
       {
           option.Interval = 10;
-          option.LocalStorage = "C:\\Users\\ducdd\\OneDrive\\Desktop\\LocalStorage";
+          option.LocalStorage = "D:\\LocalStorage";
       })
 ```
 
@@ -191,9 +191,9 @@ same with command & events, you can override the default snapshot store db confi
        config =>
        {
            config.SaveAll = true;
-           config.CommandLocalStorage = "C:\\Users\\ducdd\\OneDrive\\Desktop\\LocalStorage";
-           config.EventLocalStorage = "C:\\Users\\ducdd\\OneDrive\\Desktop\\LocalStorage";
-           config.SnapshotLocalStorage = "C:\\Users\\ducdd\\OneDrive\\Desktop\\LocalStorage";
+           config.CommandLocalStorage = "D:\\LocalStorage";
+           config.EventLocalStorage = "D:\\LocalStorage";
+           config.SnapshotLocalStorage = "D:\\LocalStorage";
 
            config.DbContextOption = sql =>
                sql.UseSqlServer(_configuration.GetConnectionString("CqrsConnection"),
@@ -202,7 +202,7 @@ same with command & events, you can override the default snapshot store db confi
       .AddSnapshotFeature(option =>
       {
           option.Interval = 10;
-          option.LocalStorage = "C:\\Users\\ducdd\\OneDrive\\Desktop\\LocalStorage";
+          option.LocalStorage = "D:\\LocalStorage";
       })
       //add custom snapshot repository if needed
       .AddSnapshotRepository<SnapshotRepository>()
@@ -226,9 +226,9 @@ Node that:
        config =>
        {
            config.SaveAll = true;
-           config.CommandLocalStorage = "C:\\Users\\ducdd\\OneDrive\\Desktop\\LocalStorage";
-           config.EventLocalStorage = "C:\\Users\\ducdd\\OneDrive\\Desktop\\LocalStorage";
-           config.SnapshotLocalStorage = "C:\\Users\\ducdd\\OneDrive\\Desktop\\LocalStorage";
+           config.CommandLocalStorage = "D:\\LocalStorage";
+           config.EventLocalStorage = "D:\\LocalStorage";
+           config.SnapshotLocalStorage = "D:\\LocalStorage";
 
            config.DbContextOption = sql =>
                sql.UseSqlServer(_configuration.GetConnectionString("CqrsConnection"),
