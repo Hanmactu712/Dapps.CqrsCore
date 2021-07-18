@@ -19,10 +19,12 @@ namespace Dapps.CqrsSample.CommandHandlers
     public class BoxingArticleHandler : CommandHandler<BoxingArticle>
     {
         private readonly ILogger<BoxingArticle> _logger;
+        private readonly ICommandStore _commandStore;
         public BoxingArticleHandler(ICommandQueue queue, IEventRepository eventRepository, IEventQueue eventQueue,
-            ILogger<BoxingArticle> logger, SnapshotRepository snapshotRepository) : base(queue, eventRepository, eventQueue, snapshotRepository)
+            ILogger<BoxingArticle> logger, SnapshotRepository snapshotRepository, ICommandStore commandStore) : base(queue, eventRepository, eventQueue, snapshotRepository)
         {
             _logger = logger;
+            _commandStore = commandStore;
             _logger.LogInformation("Init event handler");
         }
 
@@ -31,14 +33,26 @@ namespace Dapps.CqrsSample.CommandHandlers
             //Console.WriteLine("Save to database");
             _logger.LogInformation("=========Handle BoxingArticle message");
 
-            var aggregate = Get<ArticleAggregate>(command.AggregateId);
-
-            if (aggregate != null)
+            try
             {
+                var aggregate = Get<ArticleAggregate>(command.AggregateId);
+
+                if (aggregate == null) return;
+                
+                _commandStore.Box(aggregate.Id);
+
+                _logger.LogInformation("=========Boxing command Ok!");
+
                 EventRepository.Box(aggregate);
+
+                _logger.LogInformation("=========BoxingArticle Ok!");
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError($"=========Error {exception}");
             }
 
-            _logger.LogInformation("=========Fire event to BoxingArticle event handler");
+
         }
     }
 }

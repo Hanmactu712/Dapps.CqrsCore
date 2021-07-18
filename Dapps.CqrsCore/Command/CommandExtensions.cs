@@ -37,7 +37,7 @@ namespace Dapps.CqrsCore.Command
         /// <param name="aggregateId"></param>
         /// <param name="version"></param>
         /// <returns></returns>
-        public static SerializedCommand Serialize(this ICommand command, ISerializer serializer, Guid aggregateId, int? version)
+        public static SerializedCommand Serialize(this ICommand command, ISerializer serializer, int? version)
         {
             if (command == null)
                 throw new ArgumentNullException(nameof(ICommand));
@@ -50,7 +50,7 @@ namespace Dapps.CqrsCore.Command
             var serialized = new SerializedCommand
             {
                 Id = command.Id,
-                AggregateId = aggregateId,
+                AggregateId = command.AggregateId,
                 Version = version,
                 Class = command.GetType().AssemblyQualifiedName,
                 Type = command.GetType().Name,

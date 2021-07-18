@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 using System.Text;
 using Dapps.CqrsCore.Aggregate;
 using Dapps.CqrsCore.Event;
+using Dapps.CqrsCore.Persistence.Exceptions;
 using Dapps.CqrsCore.Utilities;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Dapps.CqrsCore.Persistence.Store
 {
@@ -18,12 +17,13 @@ namespace Dapps.CqrsCore.Persistence.Store
     public class EventStore : BaseStore<IEventDbContext>, IEventStore
     {
         private readonly string _offlineStorageFolder;
+        private const string DefaultFolder = "Events";
         public EventStore(ISerializer serializer, IServiceProvider service, EventStoreOptions options) : base(service)
         {
             Serializer = serializer ?? throw new ArgumentNullException(nameof(ISerializer));
 
             _offlineStorageFolder = options?.EventLocalStorage ??
-                                    Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Commands");
+                                    Path.Combine(AppDomain.CurrentDomain.BaseDirectory);
         }
 
         public ISerializer Serializer { get; }
@@ -36,14 +36,15 @@ namespace Dapps.CqrsCore.Persistence.Store
             foreach (var ev in events)
             {
                 // Create a new directory using the aggregate identifier as the folder name.
-                var path = Path.Combine(_offlineStorageFolder, aggregate.ToString());
+                var path = Path.Combine(_offlineStorageFolder, DefaultFolder, aggregate.ToString());
                 if (!Directory.Exists(path))
                     Directory.CreateDirectory(path);
 
                 //get json data from event
-                var json = Serializer.Serialize(ev);
+                var serializedEvent = ev.Serialize(Serializer, aggregate, ev.Version);
+                var data = Serializer.Serialize(serializedEvent);
                 var file = Path.Combine(path, $"{ev.Version}.json");
-                File.WriteAllText(file, json, Encoding.Unicode);
+                File.WriteAllText(file, data, Encoding.Unicode);
 
                 // Delete the aggregate and the events from the online logs.
                 var existingEvent = dbContext.Events.SingleOrDefault(e =>
@@ -57,10 +58,41 @@ namespace Dapps.CqrsCore.Persistence.Store
             //remove aggregate
             var existingAggregate = dbContext.Aggregates.AsNoTracking()
                 .SingleOrDefault(e => e.AggregateId.Equals(aggregate));
+
             if (existingAggregate != null)
                 dbContext.Aggregates.Remove(existingAggregate);
 
             dbContext.SaveChanges();
+        }
+
+        public IEnumerable<SerializedEvent> UnBox(Guid aggregate)
+        {
+            var filePath = Path.Combine(_offlineStorageFolder, DefaultFolder, aggregate.ToString());
+
+            if (!Directory.Exists(filePath))
+                throw new EventNotFoundException(filePath);
+
+            var files = Directory.GetFiles(filePath).OrderBy(s => s).ToList();
+            if (files.Count <= 0)
+                throw new EventNotFoundException(filePath);
+
+            var result = new List<SerializedEvent>();
+
+            foreach (var file in files)
+            {
+                if (!File.Exists(file)) continue;
+
+                var eventJson = File.ReadAllText(file, Encoding.Unicode);
+
+                var serializedEvent = Serializer.Deserialize<SerializedEvent>(eventJson, typeof(SerializedEvent));
+
+                if (serializedEvent != null && !serializedEvent.AggregateId.Equals(Guid.Empty))
+                {
+                    result.Add(serializedEvent);
+                }
+            }
+
+            return result;
         }
 
         public bool Exists(Guid aggregateId)

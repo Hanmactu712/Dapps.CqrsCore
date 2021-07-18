@@ -33,15 +33,9 @@ namespace Dapps.CqrsSample.CommandHandlers
 
             var aggregate = EventRepository.Unbox<ArticleAggregate>(command.AggregateId);
             
-            var newAggregate = new ArticleAggregate() { Id = aggregate.Id };
+            _logger.LogInformation($"========= Title = {aggregate.Id}");
 
-            var state = (ArticleState)aggregate.State;
-
-            _logger.LogInformation($"========= Title = {state.Title} - {state.Summary}");
-
-            newAggregate.CreateArticle(state.Title, state.Summary, state.Details, command.UserId, command.Id);
-
-            Commit(newAggregate);
+            Commit(aggregate);
 
             _logger.LogInformation("=========Fire event to UnboxingArticle event handler");
         }

@@ -71,6 +71,8 @@ namespace Dapps.CqrsCore.Aggregate
             }
         }
 
+        public abstract void ApplyUnBoxingEvent(IEvent ev);
+
         protected void Apply(IEvent change)
         {
             lock (_changes)

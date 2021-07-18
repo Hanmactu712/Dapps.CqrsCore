@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using Dapps.CqrsCore.AspNetCore;
@@ -16,6 +17,7 @@ namespace Dapps.CqrsSample
     class Program
     {
         private static IConfigurationRoot _configuration;
+        private static ILogger _logger;
         static void Main(string[] args)
         {
             Console.WriteLine("Command processing!");
@@ -28,18 +30,7 @@ namespace Dapps.CqrsSample
 
                 try
                 {
-                    //var readContext = services.GetRequiredService<UserDBContext>();
-
-                    //readContext.Database.Migrate();
-
-                    //var config = services.GetRequiredService<IConfiguration>();
-
-                    //var password = config["SeedUserPassword"];
-
-                    //var writeContext = services.GetRequiredService<PersistenceDBContext>();
-                    //writeContext.Database.Migrate();
-
-                    ////SeedData.Initialize(services, password).Wait();
+                    //seeding database
                 }
                 catch (Exception ex)
                 {
@@ -74,6 +65,8 @@ namespace Dapps.CqrsSample
                 })
                 .ConfigureServices((hostContext, services) =>
                 {
+                    _logger = services.BuildServiceProvider().GetRequiredService<ILogger<Program>>();
+
                     var currentAssembly = Assembly.GetAssembly(typeof(Program)).GetName().Name;
 
                     //services.AddCqrsService(_configuration, option =>
@@ -89,9 +82,11 @@ namespace Dapps.CqrsSample
                     services.AddCqrsService(_configuration,
                             config =>
                             {
-                                config.SaveAll =
-                                    Convert.ToBoolean(_configuration.GetSection("CoreSettings:SaveAll").Value);
-                            })
+                                config.SaveAll = true;
+                                config.CommandLocalStorage = "C:\\Users\\ducdd\\OneDrive\\Desktop\\LocalStorage"; 
+                                config.EventLocalStorage = "C:\\Users\\ducdd\\OneDrive\\Desktop\\LocalStorage";
+                                config.SnapshotLocalStorage = "C:\\Users\\ducdd\\OneDrive\\Desktop\\LocalStorage";
+                            }, _logger)
                         //services.AddCqrsService(_configuration)
                         .AddCommandStoreDb<CommandDbContext>(option =>
                         {
@@ -105,14 +100,21 @@ namespace Dapps.CqrsSample
                                 migrationOps => migrationOps.MigrationsAssembly(currentAssembly));
                             //option.UseInMemoryDatabase("EventDb");
                         })
-                        .AddSnapshotFeature(option => option.Interval = 10)
+                        .AddSnapshotFeature(option =>
+                        {
+                            option.Interval = 10;
+                            option.LocalStorage = "C:\\Users\\ducdd\\OneDrive\\Desktop\\LocalStorage";
+                        })
                         .AddSnapshotStoreDb<SnapshotDbContext>(option =>
                         {
                             option.UseSqlServer(_configuration.GetConnectionString("SnapshotDbConnection"),
                                 migrationOps => migrationOps.MigrationsAssembly(currentAssembly));
                             //option.UseInMemoryDatabase("SnapshotDb");
                         })
-                        .AddHandlers();
+                        .AddHandlers(option => option.HandlerAssemblyNames = new List<string>()
+                        {
+                            currentAssembly
+                        });
 
                     //add db context & repository for read part of the application
                     services.AddDbContext<ApplicationDbContext>(option =>

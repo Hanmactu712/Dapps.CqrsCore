@@ -9,8 +9,13 @@ namespace Dapps.CqrsSample.Aggregates
         public string Summary { get; private set; }
         public string Details { get; private set; }
 
-        public ArticleState()
+        public ArticleState() { }
+
+        public ArticleState(string title, string summary, string details)
         {
+            Title = title;
+            Summary = summary;
+            Details = details;
         }
 
         public void When(ArticleCreated message)

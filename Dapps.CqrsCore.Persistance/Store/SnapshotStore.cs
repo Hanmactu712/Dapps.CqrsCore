@@ -6,7 +6,6 @@ using Dapps.CqrsCore.Persistence.Exceptions;
 using Dapps.CqrsCore.Snapshots;
 using Dapps.CqrsCore.Utilities;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Dapps.CqrsCore.Persistence.Store
 {
@@ -16,6 +15,7 @@ namespace Dapps.CqrsCore.Persistence.Store
     public class SnapshotStore : BaseStore<ISnapshotDbContext>, ISnapshotStore
     {
         private readonly string _offlineStorageFolder;
+        private const string DefaultFolder = "Snapshot";
 
         public SnapshotStore(IServiceProvider service, SnapshotOptions configuration) : base(service)
         {
@@ -30,7 +30,7 @@ namespace Dapps.CqrsCore.Persistence.Store
         public void Box(Guid aggregate)
         {
             // Create a new directory using the aggregate identifier as the folder name.
-            var path = Path.Combine(_offlineStorageFolder, aggregate.ToString());
+            var path = Path.Combine(_offlineStorageFolder, DefaultFolder, aggregate.ToString());
             if (!Directory.Exists(path))
                 Directory.CreateDirectory(path);
 
@@ -89,7 +89,7 @@ namespace Dapps.CqrsCore.Persistence.Store
         public Snapshot Unbox(Guid aggregate)
         {
             // The snapshot must exist!
-            var file = Path.Combine(_offlineStorageFolder, aggregate.ToString(), "Snapshot.json");
+            var file = Path.Combine(_offlineStorageFolder, DefaultFolder, aggregate.ToString(), "Snapshot.json");
             if (!File.Exists(file))
                 throw new SnapshotNotFoundException(file);
 

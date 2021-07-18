@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Dapps.CqrsCore.AspNetCore
 {
@@ -8,5 +9,6 @@ namespace Dapps.CqrsCore.AspNetCore
     public interface ICqrsServiceBuilder
     {
         IServiceCollection Services { get; }
+        ILogger Logger { get; }
     }
 }

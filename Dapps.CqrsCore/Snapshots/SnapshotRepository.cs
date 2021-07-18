@@ -4,6 +4,8 @@ using Dapps.CqrsCore.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using Dapps.CqrsCore.Exceptions;
 
 
 namespace Dapps.CqrsCore.Snapshots
@@ -148,12 +150,78 @@ namespace Dapps.CqrsCore.Snapshots
         /// </summary>
         public T Unbox<T>(Guid aggregateId) where T : AggregateRoot
         {
-            var snapshot = _snapshotStore.Unbox(aggregateId);
+            //var snapshot = _snapshotStore.Unbox(aggregateId);
             var aggregate = AggregateFactory<T>.CreateAggregate();
             aggregate.Id = aggregateId;
-            aggregate.Version = 1;
-            aggregate.State = _eventStore.Serializer.Deserialize<AggregateState>(snapshot.State, aggregate.CreateState().GetType());
+            //aggregate.Version = 1;
+
+            var events = _eventStore.UnBox(aggregateId).ToList();
+
+            if (!events.Any()) return aggregate;
+
+            foreach (var serializedEvent in events.OrderBy(e => e.Version))
+            {
+                var concreteEvent = GetEventFromSerializedEvent(serializedEvent);
+                if (concreteEvent != null)
+                {
+                    InvokeApplyMethod(aggregate, concreteEvent);
+                }
+            }
+            //var createCommand = _eventStore.Serializer.Deserialize<AggregateState>(snapshot.State, aggregate.CreateState().GetType());
+            //aggregate.State = _eventStore.Serializer.Deserialize<AggregateState>(snapshot.State, aggregate.CreateState().GetType());
             return aggregate;
+
+        }
+
+        private void InvokeApplyMethod<T>(T aggregate, IEvent ev) where T : AggregateRoot
+        {
+            var aggregateType = aggregate.GetType();
+            var apply = aggregateType.GetMethod("ApplyUnBoxingEvent", new[] { typeof(IEvent) });
+
+            if (apply == null)
+            {
+                throw new MethodNotFoundException(aggregateType, "ApplyUnBoxingEvent", typeof(IEvent));
+            }
+
+            apply.Invoke(aggregate, new object[] { ev });
+        }
+
+        private IEvent GetEventFromSerializedEvent(SerializedEvent serializedEvent)
+        {
+            var eventType = serializedEvent.Type;
+
+            if (string.IsNullOrEmpty(eventType))
+                return null;
+
+            var entryAssembly = Assembly.GetExecutingAssembly();
+
+            var type = entryAssembly.GetType(eventType);
+
+            if (type == null)
+            {
+                entryAssembly = Assembly.GetCallingAssembly();
+
+                type = entryAssembly.GetType(eventType);
+
+                if (type == null)
+                {
+                    entryAssembly = Assembly.GetEntryAssembly();
+
+                    if (entryAssembly != null)
+                        type = entryAssembly.GetType(eventType);
+
+                }
+
+            }
+
+            if (type == null)
+            {
+                return null;
+            }
+
+            var ev = _eventStore.Serializer.Deserialize<IEvent>(serializedEvent.Data, type);
+
+            return ev;
         }
 
         #endregion

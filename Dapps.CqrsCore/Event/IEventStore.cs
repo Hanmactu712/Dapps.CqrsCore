@@ -52,5 +52,12 @@ namespace Dapps.CqrsCore.Event
         /// we do not want to permanently store the event streams for test aggregates.
         /// </remarks>
         void Box(Guid aggregate);
+
+        /// <summary>
+        /// Retrieve event from file and insert back to event store
+        /// </summary>
+        /// <param name="aggregate"></param>
+        /// <returns></returns>
+        IEnumerable<SerializedEvent> UnBox(Guid aggregate);
     }
 }

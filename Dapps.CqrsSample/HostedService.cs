@@ -38,15 +38,18 @@ namespace Dapps.CqrsSample
         {
             var random = new Random();
             //test with sending a chains of commands
+
+            //var testBoxingId = Guid.Empty;
+
             //for (int i = 0; i < 10; i++)
             //{
-            //    var commandId = Guid.NewGuid();
+            //    var aggregateId = Guid.NewGuid();
             //    var userId = Guid.NewGuid();
 
             //    var command = new CreateArticle($"Test title {i} {DateTime.Now}", $"Test summary {DateTime.Now}",
             //            $"Test details {DateTime.Now}", Guid.NewGuid())
             //    {
-            //        AggregateId = commandId,
+            //        AggregateId = aggregateId,
             //        UserId = userId
             //    };
 
@@ -56,12 +59,17 @@ namespace Dapps.CqrsSample
 
             //    var updateTimes = random.Next(5, 100);
 
+            //    if (i == 5)
+            //    {
+            //        testBoxingId = aggregateId;
+            //    }
+
             //    for (int j = 0; j < updateTimes; j++)
             //    {
             //        var updateCommand = new UpdateArticle($"Update title {i} {DateTime.Now}", $"Update summary {DateTime.Now}",
             //            $"Update details {DateTime.Now}", Guid.NewGuid())
             //        {
-            //            AggregateId = commandId,
+            //            AggregateId = aggregateId,
             //            UserId = userId
             //        };
 
@@ -71,14 +79,13 @@ namespace Dapps.CqrsSample
             //    }
             //}
 
-            //test boxing aggregate
+            ////test boxing aggregate
+            //var boxingCommand = new BoxingArticle(testBoxingId, Guid.NewGuid());
+            //_queue.Send(boxingCommand);
+            ////test unboxing aggregate
 
-            var boxingCommand = new BoxingArticle(new Guid("1351C9F3-6BD7-47DC-B2D2-378FC156F3D4"), Guid.NewGuid());
-            _queue.Send(boxingCommand);
-            //test unboxing aggregate
-
-            var unBoxingCommand = new UnboxingArticle(new Guid("1351C9F3-6BD7-47DC-B2D2-378FC156F3D4"), Guid.NewGuid());
-            _queue.Send(unBoxingCommand);
+            //var unBoxingCommand = new UnboxingArticle(testBoxingId, Guid.NewGuid());
+            //_queue.Send(unBoxingCommand);
 
             return Task.CompletedTask;
         }

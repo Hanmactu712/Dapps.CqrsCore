@@ -1,5 +1,6 @@
 ﻿using System;
 using Dapps.CqrsCore.Aggregate;
+using Dapps.CqrsCore.Event;
 using Dapps.CqrsSample.EventHandlers;
 
 namespace Dapps.CqrsSample.Aggregates
@@ -22,6 +23,11 @@ namespace Dapps.CqrsSample.Aggregates
         {
             var ev = new ArticleUpdated(Id, title, summary, details, userId, commandId);
 
+            Apply(ev);
+        }
+
+        public override void ApplyUnBoxingEvent(IEvent ev)
+        {
             Apply(ev);
         }
     }

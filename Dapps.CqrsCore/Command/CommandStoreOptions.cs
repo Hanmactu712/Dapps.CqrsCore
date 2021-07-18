@@ -16,6 +16,6 @@ namespace Dapps.CqrsCore.Command
         /// <summary>
         /// Location to save data of commands when boxing & unboxing
         /// </summary>
-        public string CommandLocalStorage { get; set; } = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Commands");
+        public string CommandLocalStorage { get; set; } = AppDomain.CurrentDomain.BaseDirectory;
     }
 }

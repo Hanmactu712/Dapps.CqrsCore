@@ -34,7 +34,7 @@ namespace Dapps.CqrsCore.Event
                 Version = version,
                 Time = ev.Time,
                 Class = ev.GetType().AssemblyQualifiedName,
-                Type = ev.GetType().Name,
+                Type = ev.GetType().FullName,
                 Data = data,
                 UserId = ev.UserId,
                 ReferenceId = ev.ReferenceId

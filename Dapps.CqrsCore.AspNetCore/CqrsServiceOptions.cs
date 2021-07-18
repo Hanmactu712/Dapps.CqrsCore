@@ -20,11 +20,11 @@ namespace Dapps.CqrsCore.AspNetCore
         /// <summary>
         /// Local storage path to store command data when boxing & unboxing. Default is {the current location of execution file}/Commands.
         /// </summary>
-        public string CommandLocalStorage { get; set; } = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Commands");
+        public string CommandLocalStorage { get; set; } = AppDomain.CurrentDomain.BaseDirectory;
         /// <summary>
         /// Local storage path to store event data when boxing & unboxing. Default is {the current location of execution file}/EventSourcing.
         /// </summary>
-        public string EventLocalStorage { get; set; } = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "EventSourcing");
+        public string EventLocalStorage { get; set; } = AppDomain.CurrentDomain.BaseDirectory;
 
         /// <summary>
         /// Indicate the snapshot will be taken after how many version of aggregate. Default is 200.
@@ -34,7 +34,7 @@ namespace Dapps.CqrsCore.AspNetCore
         /// <summary>
         /// Local storage path to store snapshot data when boxing & unboxing. Default is {the current location of execution file}/Snapshots.
         /// </summary>
-        public string SnapshotLocalStorage { get; set; } = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Snapshots");
+        public string SnapshotLocalStorage { get; set; } = AppDomain.CurrentDomain.BaseDirectory;
 
         /// <summary>
         /// Default Db Builder Option for CQRS service
