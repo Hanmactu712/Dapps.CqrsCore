@@ -2,15 +2,27 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
-    <Description>Core library for CQRS pattern in .net 5</Description>
+    <Description>Core library for CQRS + ES pattern in .net 5.
+Provide base class, interface &amp; default implementations for:
+- Command, Command Stores, Command Queue
+- Event, Event Stores, Event Repository, Event Queue
+- Snapshot, Snapshot Store, Snapshot Repository</Description>
     <Authors>Dang Dinh Duc</Authors>
-    <Company>Personal</Company>
+    <Company>Dang Dinh Duc</Company>
     <PackageProjectUrl>https://github.com/Hanmactu712/Dapps.CqrsCore</PackageProjectUrl>
-    <Version>1.0.0.0</Version>
+    <Version>1.1.0.0</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <RepositoryUrl>https://github.com/Hanmactu712/Dapps.CqrsCore</RepositoryUrl>
-    <PackageTags>v1.0.0</PackageTags>
-    <PackageReleaseNotes>v1.0.0</PackageReleaseNotes>
+    <PackageTags>v1.1.0.0</PackageTags>
+    <PackageReleaseNotes>- Change 
+   + Command properties:
+        - CommandId -&gt; Id. 
+        - Id -&gt; AggregateId
+- Update Boxing &amp; UnBoxing functions for Snapshot &amp; Event Repository
+- Add new Interface &amp; Base class for Event/Command/Snapshot Store
+- Fix bugs</PackageReleaseNotes>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>Dapps.CqrsCore.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
   <ItemGroup>
