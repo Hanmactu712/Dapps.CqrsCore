@@ -7,13 +7,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dapps.CqrsCore", "Dapps.Cqr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dapps.CqrsCore.Persistence", "Dapps.CqrsCore.Persistance\Dapps.CqrsCore.Persistence.csproj", "{FF758353-9F6D-447F-BA7C-6A9B1C916999}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dapps.ApiEndpoints", "Dapps.ApiEndpoints\Dapps.ApiEndpoints.csproj", "{DF12FD0C-674F-4890-BF37-E7DFFE508BBA}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dapps.CqrsCore.AspNetCore", "Dapps.CqrsCore.AspNetCore\Dapps.CqrsCore.AspNetCore.csproj", "{1F2CB86F-75BA-4CAE-A318-F16BC852726D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dapps.CqrsCore.AspNetCore", "Dapps.CqrsCore.AspNetCore\Dapps.CqrsCore.AspNetCore.csproj", "{1F2CB86F-75BA-4CAE-A318-F16BC852726D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Sample", "Sample", "{9591AD24-CDC0-4C07-8241-D2CA3F2947F1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dapps.CqrsSample", "Dapps.CqrsSample\Dapps.CqrsSample.csproj", "{A9FA4951-55C0-4A25-AE9F-5139F7792125}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dapps.CqrsSample", "Dapps.CqrsSample\Dapps.CqrsSample.csproj", "{A9FA4951-55C0-4A25-AE9F-5139F7792125}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,10 +27,6 @@ Global
 		{FF758353-9F6D-447F-BA7C-6A9B1C916999}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FF758353-9F6D-447F-BA7C-6A9B1C916999}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FF758353-9F6D-447F-BA7C-6A9B1C916999}.Release|Any CPU.Build.0 = Release|Any CPU
-		{DF12FD0C-674F-4890-BF37-E7DFFE508BBA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DF12FD0C-674F-4890-BF37-E7DFFE508BBA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DF12FD0C-674F-4890-BF37-E7DFFE508BBA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DF12FD0C-674F-4890-BF37-E7DFFE508BBA}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1F2CB86F-75BA-4CAE-A318-F16BC852726D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{1F2CB86F-75BA-4CAE-A318-F16BC852726D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1F2CB86F-75BA-4CAE-A318-F16BC852726D}.Release|Any CPU.ActiveCfg = Release|Any CPU
