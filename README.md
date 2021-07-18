@@ -219,4 +219,34 @@ same with command & events, you can override the default snapshot store db confi
 Node that: 
 - All the aggregate should be derived from Aggregate Root.
 - All the handler should be derived from Command Handler or Event Handler accordingly. For best practice, 1 command/event should be handle by 1 corresponding class Command Handler / Event Handler
+- The Dapps.CqrsCore.AspNetCore project provide a function to supports register all the command handlers & event handlers via service dependency injection. See sample below to know how to use this function
 
+``` csharp
+   services.AddCqrsService(_configuration,
+       config =>
+       {
+           config.SaveAll = true;
+           config.CommandLocalStorage = "C:\\Users\\ducdd\\OneDrive\\Desktop\\LocalStorage";
+           config.EventLocalStorage = "C:\\Users\\ducdd\\OneDrive\\Desktop\\LocalStorage";
+           config.SnapshotLocalStorage = "C:\\Users\\ducdd\\OneDrive\\Desktop\\LocalStorage";
+
+           config.DbContextOption = sql =>
+               sql.UseSqlServer(_configuration.GetConnectionString("CqrsConnection"),
+                   migrationOps => migrationOps.MigrationsAssembly(currentAssembly));
+       }, _logger)                        
+      //This functions will looking for all command handlers & event handlers to register to Service Providers
+      .AddHandlers(option => option.HandlerAssemblyNames = new List<string>()
+      {
+          currentAssembly
+      })
+      //This functions will looking for all command handlers to register to Service Providers
+      .AddCommandHandlers(option => option.HandlerAssemblyNames = new List<string>()
+      {
+          currentAssembly
+      })
+      //This functions will looking for all event handlers to register to Service Providers
+      .AddEventHandlers(option => option.HandlerAssemblyNames = new List<string>()
+      {
+          currentAssembly
+      });
+```
