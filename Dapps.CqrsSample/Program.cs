@@ -3,7 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using Dapps.CqrsCore.AspNetCore;
+using Dapps.CqrsCore.Command;
+using Dapps.CqrsCore.Event;
+using Dapps.CqrsCore.Persistence;
 using Dapps.CqrsCore.Persistence.Read;
+using Dapps.CqrsCore.Persistence.Store;
 using Dapps.CqrsSample.Data;
 using Dapps.CqrsSample.EventSourcing;
 using Microsoft.EntityFrameworkCore;
@@ -69,49 +73,63 @@ namespace Dapps.CqrsSample
 
                     var currentAssembly = Assembly.GetAssembly(typeof(Program)).GetName().Name;
 
-                    //services.AddCqrsService(_configuration, option =>
-                    //    {
-                    //        option.SaveAll = Convert.ToBoolean(_configuration.GetSection("CoreSettings:SaveAll").Value);
-                    //        //option.DbContextOption = sql =>
-                    //        //    sql.UseSqlServer(_configuration.GetConnectionString("CqrsConnection"),
-                    //        //        migrationOps => migrationOps.MigrationsAssembly(currentAssembly));
-                    //        option.DbContextOption = sql => sql.UseInMemoryDatabase("CqrsConnection");
-                    //    })
-                    //    .AddHandlers();
-
+                    //Register CQRS service. Using services.AddCqrsService() only if want to use default configuration & services
                     services.AddCqrsService(_configuration,
                             config =>
                             {
                                 config.SaveAll = true;
-                                config.CommandLocalStorage = "C:\\Users\\ducdd\\OneDrive\\Desktop\\LocalStorage"; 
+                                config.CommandLocalStorage = "C:\\Users\\ducdd\\OneDrive\\Desktop\\LocalStorage";
                                 config.EventLocalStorage = "C:\\Users\\ducdd\\OneDrive\\Desktop\\LocalStorage";
                                 config.SnapshotLocalStorage = "C:\\Users\\ducdd\\OneDrive\\Desktop\\LocalStorage";
+
+                                config.DbContextOption = sql =>
+                                    sql.UseSqlServer(_configuration.GetConnectionString("CqrsConnection"),
+                                        migrationOps => migrationOps.MigrationsAssembly(currentAssembly));
                             }, _logger)
-                        //services.AddCqrsService(_configuration)
+                        //add custom command Store DB if needed
                         .AddCommandStoreDb<CommandDbContext>(option =>
                         {
                             option.UseSqlServer(_configuration.GetConnectionString("CommandDbConnection"),
                                 migrationOps => migrationOps.MigrationsAssembly(currentAssembly));
                             //option.UseInMemoryDatabase("CommandDb");
                         })
+                        //add custom event Store DB if needed
                         .AddEventStoreDb<EventDbContext>(option =>
                         {
                             option.UseSqlServer(_configuration.GetConnectionString("EventDbConnection"),
                                 migrationOps => migrationOps.MigrationsAssembly(currentAssembly));
                             //option.UseInMemoryDatabase("EventDb");
                         })
+                        .AddSerializer<Serializer>() //add custom serializer if needed
+                        .AddCommandStore<CommandStore>( ) //add custom CommandStore if needed
+                        .AddCommandQueue<CommandQueue>() //add custom CommandQueue if needed
+                        .AddEventStore<EventStore>() //add custom EventStore if needed
+                        .AddEventQueue<EventQueue>() //add custom EventQueue if needed
+                        .AddEventRepository<EventRepository>() //add custom EventRepository if needed
                         .AddSnapshotFeature(option =>
                         {
                             option.Interval = 10;
                             option.LocalStorage = "C:\\Users\\ducdd\\OneDrive\\Desktop\\LocalStorage";
                         })
+                        //add custom snapshot Store DB if needed
                         .AddSnapshotStoreDb<SnapshotDbContext>(option =>
                         {
                             option.UseSqlServer(_configuration.GetConnectionString("SnapshotDbConnection"),
                                 migrationOps => migrationOps.MigrationsAssembly(currentAssembly));
                             //option.UseInMemoryDatabase("SnapshotDb");
                         })
+                        //This functions will looking for all command handlers & event handlers to register to Service Providers
                         .AddHandlers(option => option.HandlerAssemblyNames = new List<string>()
+                        {
+                            currentAssembly
+                        })
+                        //This functions will looking for all command handlers to register to Service Providers
+                        .AddCommandHandlers(option => option.HandlerAssemblyNames = new List<string>()
+                        {
+                            currentAssembly
+                        })
+                        //This functions will looking for all event handlers to register to Service Providers
+                        .AddEventHandlers(option => option.HandlerAssemblyNames = new List<string>()
                         {
                             currentAssembly
                         });
@@ -124,7 +142,10 @@ namespace Dapps.CqrsSample
                         //option.UseInMemoryDatabase("ApplicationDb");
                     });
 
-                    services.AddScoped<IEfRepository<Article, ApplicationDbContext>, EfRepository<Article, ApplicationDbContext>>();
+                    //add db context for read side
+                    services
+                        .AddScoped<IEfRepository<Article, ApplicationDbContext>,
+                            EfRepository<Article, ApplicationDbContext>>();
 
                     services.AddHostedService<HostedService>();
                 });

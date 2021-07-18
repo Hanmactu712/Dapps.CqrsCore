@@ -39,53 +39,53 @@ namespace Dapps.CqrsSample
             var random = new Random();
             //test with sending a chains of commands
 
-            //var testBoxingId = Guid.Empty;
+            var testBoxingId = Guid.Empty;
 
-            //for (int i = 0; i < 10; i++)
-            //{
-            //    var aggregateId = Guid.NewGuid();
-            //    var userId = Guid.NewGuid();
+            for (int i = 0; i < 10; i++)
+            {
+                var aggregateId = Guid.NewGuid();
+                var userId = Guid.NewGuid();
 
-            //    var command = new CreateArticle($"Test title {i} {DateTime.Now}", $"Test summary {DateTime.Now}",
-            //            $"Test details {DateTime.Now}", Guid.NewGuid())
-            //    {
-            //        AggregateId = aggregateId,
-            //        UserId = userId
-            //    };
+                var command = new CreateArticle($"Test title {i} {DateTime.Now}", $"Test summary {DateTime.Now}",
+                        $"Test details {DateTime.Now}", Guid.NewGuid())
+                {
+                    AggregateId = aggregateId,
+                    UserId = userId
+                };
 
-            //    _logger.LogInformation($"Send create command {command.Title}");
-            //    _queue.Send(command);
-            //    _logger.LogInformation($"Create command {command.Title} is sent");
+                _logger.LogInformation($"Send create command {command.Title}");
+                _queue.Send(command);
+                _logger.LogInformation($"Create command {command.Title} is sent");
 
-            //    var updateTimes = random.Next(5, 100);
+                var updateTimes = random.Next(5, 100);
 
-            //    if (i == 5)
-            //    {
-            //        testBoxingId = aggregateId;
-            //    }
+                if (i == 5)
+                {
+                    testBoxingId = aggregateId;
+                }
 
-            //    for (int j = 0; j < updateTimes; j++)
-            //    {
-            //        var updateCommand = new UpdateArticle($"Update title {i} {DateTime.Now}", $"Update summary {DateTime.Now}",
-            //            $"Update details {DateTime.Now}", Guid.NewGuid())
-            //        {
-            //            AggregateId = aggregateId,
-            //            UserId = userId
-            //        };
+                for (int j = 0; j < updateTimes; j++)
+                {
+                    var updateCommand = new UpdateArticle($"Update title {i} {DateTime.Now}", $"Update summary {DateTime.Now}",
+                        $"Update details {DateTime.Now}", Guid.NewGuid())
+                    {
+                        AggregateId = aggregateId,
+                        UserId = userId
+                    };
 
-            //        _logger.LogInformation($"Send update command {command.Title}");
-            //        _queue.Send(updateCommand);
-            //        _logger.LogInformation($"Update command {command.Title} is sent");
-            //    }
-            //}
+                    _logger.LogInformation($"Send update command {command.Title}");
+                    _queue.Send(updateCommand);
+                    _logger.LogInformation($"Update command {command.Title} is sent");
+                }
+            }
 
-            ////test boxing aggregate
-            //var boxingCommand = new BoxingArticle(testBoxingId, Guid.NewGuid());
-            //_queue.Send(boxingCommand);
-            ////test unboxing aggregate
+            //test boxing aggregate
+            var boxingCommand = new BoxingArticle(testBoxingId, Guid.NewGuid());
+            _queue.Send(boxingCommand);
+            //test unboxing aggregate
 
-            //var unBoxingCommand = new UnboxingArticle(testBoxingId, Guid.NewGuid());
-            //_queue.Send(unBoxingCommand);
+            var unBoxingCommand = new UnboxingArticle(testBoxingId, Guid.NewGuid());
+            _queue.Send(unBoxingCommand);
 
             return Task.CompletedTask;
         }

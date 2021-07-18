@@ -140,7 +140,7 @@ namespace Dapps.CqrsCore.AspNetCore
                     EventLocalStorage = options.EventLocalStorage
                 };
 
-                logger?.LogDebug(_messageFormat, DateTimeOffset.Now, $"CQRS configuration option : {JsonConvert.SerializeObject(options)}");
+                //logger?.LogDebug(_messageFormat, DateTimeOffset.Now, $"CQRS configuration option : {JsonConvert.SerializeObject(options)}");
 
                 builder.Services.AddSingleton(commandOption);
                 logger?.LogDebug(_messageFormat, DateTimeOffset.Now, $"CQRS Command configuration option : {JsonConvert.SerializeObject(commandOption)}");
