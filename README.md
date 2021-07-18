@@ -13,7 +13,7 @@ If you like or are using this project to learn or start your solution, please gi
 
 [1. Introducing](#1-introducing)
 
-[2. Getting Started](#3-getting-started)
+[2. Getting Started](#2-getting-started)
 
 ## 1. Introducing
 
@@ -26,20 +26,25 @@ The CQRS service contains these mains components:
 
 1. Serializer - using to serialize / deserialize command & event messsage before persist or get from store database
 
+2. Aggregate - The main object which contains all the data properties & logic to handle a business
+   - Aggregate Root - Base class of any aggregate object
+
 3. Command (Represent for Write side in the CQRS pattern)
    - Base Command class, Command interface. 
    - Command Store - to persist all the command messages
    - Command Queue - to queue the command message and deliver it to corresponding handler which handle the business logic and publish corresponding events
    - Command Handler - to handle the command message received from command queue
    
-3. Event (Represent for Write side in the CQRS pattern)
+4. Event (Represent for Write side in the CQRS pattern)
    - Base Event class, Event interface
    - Event Store - to persist all the event messages
    - Evemt Queue - to queue the event message and deliver it to corresponding handler which handle the business logic and save data to the READ side of CQRS
    - Event Repository - to processing event logic and communicate with event store to persist event message
    - Event Handler - to handle the event message received from event queue.
    
-5. Snapshot
+5. Snapshot - the mechanism to capture the state of an aggregate after a specific version of events.
+   - Snapshot store - to persist snapshot records
+   - Snapshot repository - to handle logic relating to snapshot   
 
 ### A. READ side
 
@@ -49,9 +54,9 @@ With read side, you can use many ways to build the project such as REST API, GRA
 
 Here's all you need to get started (you can also check the [sample project](https://github.com/Hanmactu712/Dapps.CqrsCore/tree/master/Dapps.CqrsSample) for more information):
 
-1. Add the [Dapps.CqrsCore.AspNetCore NuGet package](https://www.nuget.org/packages/Dapps.CqrsCore.AspNetCore/) to your ASP.NET Core project.
+### 1. Add the [Dapps.CqrsCore.AspNetCore NuGet package](https://www.nuget.org/packages/Dapps.CqrsCore.AspNetCore/) to your ASP.NET Core project.
 
-2. Configure CQRS service dependency injection
+### 2. Configure CQRS service dependency injection
    a. With the default configuration, just need to do this: 
 ``` csharp
     var currentAssembly = Assembly.GetAssembly(typeof(Program)).GetName().Name;
@@ -209,4 +214,9 @@ same with command & events, you can override the default snapshot store db confi
           //option.UseInMemoryDatabase("SnapshotDb");
       })
 ```
+
+### 3. Build your aggregates, commands, events as well as command handles, events handles to fit with your business. 
+Node that: 
+- All the aggregate should be derived from Aggregate Root.
+- All the handler should be derived from Command Handler or Event Handler accordingly. For best practice, 1 command/event should be handle by 1 corresponding class Command Handler / Event Handler
 
