@@ -15,6 +15,8 @@ If you like or are using this project to learn or start your solution, please gi
 
 [2. Getting Started](#2-getting-started)
 
+[3. Dependency](#3-dependency)
+
 ## 1. Introducing
 
 CQRS pattern is the common parttern is used to tackle the complicated application. 
@@ -250,3 +252,10 @@ Node that:
           currentAssembly
       });
 ```
+## 3. Dependency
+
+This project using these dependency: 
+#### 1. [Dapps.CqrsCore](https://www.nuget.org/packages/Dapps.CqrsCore/)
+#### 2. [Dapps.CqrsCore.Persistence](https://www.nuget.org/packages/Dapps.CqrsCore.Persistence/)
+#### 3. [Ardalis.Specification](https://www.nuget.org/packages/ardalis.specification/) (great thanks to Ardalis)
+#### 4. [Ardalis.Specification.EntityFrameworkCore](https://www.nuget.org/packages/ardalis.specification.entityframeworkcore/) (great thanks to Ardalis)
