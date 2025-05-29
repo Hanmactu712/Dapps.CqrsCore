@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Dapps.CqrsCore.Event;
 using Dapps.CqrsCore.Persistence.Read;
 using Dapps.CqrsCore.Utilities;
@@ -52,6 +53,11 @@ namespace Dapps.CqrsSample.EventHandlers
 
             _logger.LogInformation(
                 $"================Handle event {typeof(ArticleUpdated)} - {message.Title} is handled");
+        }
+
+        public override Task HandleAsync(ArticleUpdated message)
+        {
+            throw new NotImplementedException();
         }
     }
 }

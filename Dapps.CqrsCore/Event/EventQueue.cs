@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Dapps.CqrsCore.Event
 {
@@ -10,6 +11,7 @@ namespace Dapps.CqrsCore.Event
     public class EventQueue : IEventQueue
     {
         private readonly Dictionary<string, List<Action<IEvent>>> _subscribers;
+        private readonly Dictionary<string, List<Action<IEvent>>> _subscribersAsync;
 
         public EventQueue()
         {
@@ -34,6 +36,13 @@ namespace Dapps.CqrsCore.Event
             }
         }
 
+        public async Task PublishAsync(IEvent ev)
+        {
+            Publish(ev);
+
+            await Task.CompletedTask;
+        }
+
         /// <summary>
         /// Subscribe a handler to queue for processing incoming events
         /// </summary>
@@ -50,6 +59,13 @@ namespace Dapps.CqrsCore.Event
             }
 
             _subscribers[name].Add((ev) => action((T)ev));
+        }
+
+        public async Task SubscribeAsync<T>(Action<T> action) where T : IEvent
+        {
+            Subscribe(action);
+
+            await Task.CompletedTask;
         }
     }
 }

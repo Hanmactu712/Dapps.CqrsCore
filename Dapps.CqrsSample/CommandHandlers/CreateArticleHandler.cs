@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Runtime.InteropServices;
 using Dapps.CqrsCore.Command;
 using Dapps.CqrsCore.Event;
 using Dapps.CqrsCore.Snapshots;

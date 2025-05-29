@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Dapps.CqrsCore.Aggregate;
 using Dapps.CqrsCore.Event;
 using Dapps.CqrsCore.Persistence.Exceptions;
@@ -28,20 +29,20 @@ namespace Dapps.CqrsCore.Persistence.Store
 
         public ISerializer Serializer { get; }
 
-        public void Box(Guid aggregate)
+        public void Box(Guid aggregateId)
         {
             var dbContext = GetDbContext();
             // Serialize the event stream and write it to an external file.
-            var events = Get(aggregate, -1);
+            var events = Get(aggregateId, -1);
             foreach (var ev in events)
             {
                 // Create a new directory using the aggregate identifier as the folder name.
-                var path = Path.Combine(_offlineStorageFolder, DefaultFolder, aggregate.ToString());
+                var path = Path.Combine(_offlineStorageFolder, DefaultFolder, aggregateId.ToString());
                 if (!Directory.Exists(path))
                     Directory.CreateDirectory(path);
 
                 //get json data from event
-                var serializedEvent = ev.Serialize(Serializer, aggregate, ev.Version);
+                var serializedEvent = ev.Serialize(Serializer, aggregateId, ev.Version);
                 var data = Serializer.Serialize(serializedEvent);
                 var file = Path.Combine(path, $"{ev.Version}.json");
                 File.WriteAllText(file, data, Encoding.Unicode);
@@ -57,7 +58,7 @@ namespace Dapps.CqrsCore.Persistence.Store
 
             //remove aggregate
             var existingAggregate = dbContext.Aggregates.AsNoTracking()
-                .SingleOrDefault(e => e.AggregateId.Equals(aggregate));
+                .SingleOrDefault(e => e.AggregateId.Equals(aggregateId));
 
             if (existingAggregate != null)
                 dbContext.Aggregates.Remove(existingAggregate);
@@ -65,9 +66,9 @@ namespace Dapps.CqrsCore.Persistence.Store
             dbContext.SaveChanges();
         }
 
-        public IEnumerable<SerializedEvent> UnBox(Guid aggregate)
+        public IEnumerable<SerializedEvent> UnBox(Guid aggregateId)
         {
-            var filePath = Path.Combine(_offlineStorageFolder, DefaultFolder, aggregate.ToString());
+            var filePath = Path.Combine(_offlineStorageFolder, DefaultFolder, aggregateId.ToString());
 
             if (!Directory.Exists(filePath))
                 throw new EventNotFoundException(filePath);
@@ -156,6 +157,123 @@ namespace Dapps.CqrsCore.Persistence.Store
                     Type = classType
 
                 });
+        }
+
+        public async Task<bool> ExistsAsync(Guid aggregateId)
+        {
+            return await GetDbContext().Events.AsNoTracking().AnyAsync(x => x.AggregateId.Equals(aggregateId));
+        }
+
+        public async Task<bool> ExistsAsync(Guid aggregateId, int version)
+        {
+            return await GetDbContext().Events.AsNoTracking()
+                .AnyAsync(x => x.AggregateId.Equals(aggregateId) && x.Version.Equals(version));
+        }
+
+        public async Task<IEnumerable<IEvent>> GetAsync(Guid aggregateId, int fromVersion)
+        {
+            return await GetDbContext().Events.AsNoTracking()
+                .Where(x => x.AggregateId.Equals(aggregateId) && x.Version >= fromVersion)
+                .Select(x => x.Deserialize(Serializer)).ToListAsync();
+        }
+
+        public async Task<IEnumerable<Guid>> GetExpiredAsync(DateTimeOffset at)
+        {
+            return await GetDbContext().Aggregates.AsNoTracking().Where(x => x.Expires != null && x.Expires <= at).Select(x => x.AggregateId)
+                .ToListAsync();
+        }
+
+        public async Task SaveAsync(AggregateRoot aggregate, IEnumerable<IEvent> events)
+        {
+            var dbContext = GetDbContext();
+
+            var listEvents = new List<SerializedEvent>();
+
+            foreach (var ev in events)
+            {
+                listEvents.Add(ev.Serialize(Serializer, aggregate.Id, ev.Version));
+            }
+
+            //using var transaction = Context.Database.BeginTransaction();
+
+            EnsureAggregateExist(aggregate.Id, aggregate.GetType().Name.Replace("Aggregate", string.Empty),
+                aggregate.GetType().FullName);
+
+            foreach (var serializedEvent in listEvents)
+            {
+                await dbContext.Events.AddAsync(serializedEvent);
+            }
+
+            dbContext.SaveChanges();
+
+            //transaction.Commit();
+        }
+
+        public async Task BoxAsync(Guid aggregateId)
+        {
+            var dbContext = GetDbContext();
+            // Serialize the event stream and write it to an external file.
+            var events = await GetAsync(aggregateId, -1);
+            foreach (var ev in events)
+            {
+                // Create a new directory using the aggregate identifier as the folder name.
+                var path = Path.Combine(_offlineStorageFolder, DefaultFolder, aggregateId.ToString());
+                if (!Directory.Exists(path))
+                    Directory.CreateDirectory(path);
+
+                //get json data from event
+                var serializedEvent = ev.Serialize(Serializer, aggregateId, ev.Version);
+                var data = Serializer.Serialize(serializedEvent);
+                var file = Path.Combine(path, $"{ev.Version}.json");
+                File.WriteAllText(file, data, Encoding.Unicode);
+
+                // Delete the aggregate and the events from the online logs.
+                var existingEvent = dbContext.Events.SingleOrDefault(e =>
+                    e.AggregateId.Equals(ev.AggregateId) && e.Version.Equals(ev.Version));
+                if (existingEvent != null)
+                {
+                    dbContext.Events.Remove(existingEvent);
+                }
+            }
+
+            //remove aggregate
+            var existingAggregate = await dbContext.Aggregates.AsNoTracking()
+                .SingleOrDefaultAsync(e => e.AggregateId.Equals(aggregateId));
+
+            if (existingAggregate != null)
+                dbContext.Aggregates.Remove(existingAggregate);
+
+            dbContext.SaveChanges();
+        }
+
+        public async Task<IEnumerable<SerializedEvent>> UnBoxAsync(Guid aggregate)
+        {
+            var filePath = Path.Combine(_offlineStorageFolder, DefaultFolder, aggregate.ToString());
+
+            if (!Directory.Exists(filePath))
+                throw new EventNotFoundException(filePath);
+
+            var files = Directory.GetFiles(filePath).OrderBy(s => s).ToList();
+            if (files.Count <= 0)
+                throw new EventNotFoundException(filePath);
+
+            var result = new List<SerializedEvent>();
+
+            foreach (var file in files)
+            {
+                if (!File.Exists(file)) continue;
+
+                var eventJson = await File.ReadAllTextAsync(file, Encoding.Unicode);
+
+                var serializedEvent = Serializer.Deserialize<SerializedEvent>(eventJson, typeof(SerializedEvent));
+
+                if (serializedEvent != null && !serializedEvent.AggregateId.Equals(Guid.Empty))
+                {
+                    result.Add(serializedEvent);
+                }
+            }
+
+            return result;
         }
     }
 }

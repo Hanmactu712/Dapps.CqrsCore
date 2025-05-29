@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Dapps.CqrsCore.Exceptions;
+using System.Threading.Tasks;
 
 
 namespace Dapps.CqrsCore.Snapshots
@@ -222,6 +223,77 @@ namespace Dapps.CqrsCore.Snapshots
             var ev = _eventStore.Serializer.Deserialize<IEvent>(serializedEvent.Data, type);
 
             return ev;
+        }
+
+        public async Task<T> GetAsync<T>(Guid aggregateId) where T : AggregateRoot
+        {
+            // Check the cache to see if the aggregate is already in memory.
+            var snapshot = _cache.Get(aggregateId);
+            if (snapshot != null)
+                return (T)snapshot;
+
+            // If it is not in the cache then load the aggregate from the most recent snapshot.
+            var aggregate = AggregateFactory<T>.CreateAggregate();
+            var snapshotVersion = RestoreAggregateFromSnapshot(aggregateId, aggregate);
+
+            // If there is no snapshot then load the aggregate directly from the event store.
+            if (snapshotVersion == -1)
+                return await _eventRepository.GetAsync<T>(aggregateId);
+
+            // Otherwise load the aggregate from the events that occurred after the snapshot was taken.
+            var events = (_eventStore.Get(aggregateId, snapshotVersion))
+                .Where(desc => desc.Version > snapshotVersion);
+
+            aggregate.ReHydrate(events);
+
+            return aggregate;
+        }
+
+        public async Task<IList<IEvent>> SaveAsync<T>(T aggregate, int? version = null) where T : AggregateRoot
+        {
+            // Cache the aggregate for 5 minutes.
+            _cache.Add(aggregate.Id, aggregate, 5 * 60, true);
+
+            // Take a snapshot if needed.
+            TakeSnapshot(aggregate, false);
+
+            // Return the stream of saved events to the caller so they can be published.
+            return await _eventRepository.SaveAsync(aggregate, version);
+        }
+
+        public async Task BoxAsync<T>(T aggregate) where T : AggregateRoot
+        {
+            TakeSnapshot(aggregate, true);
+
+            _snapshotStore.Box(aggregate.Id);
+            await _eventStore.BoxAsync(aggregate.Id);
+
+            _cache.Remove(aggregate.Id);
+        }
+
+        public async Task<T> UnboxAsync<T>(Guid aggregateId) where T : AggregateRoot
+        {
+            //var snapshot = _snapshotStore.Unbox(aggregateId);
+            var aggregate = AggregateFactory<T>.CreateAggregate();
+            aggregate.Id = aggregateId;
+            //aggregate.Version = 1;
+
+            var unBoxEvents = await _eventStore.UnBoxAsync(aggregateId);
+            var events = unBoxEvents.ToList();
+
+            if (!events.Any()) return aggregate;
+
+            foreach (var serializedEvent in events.OrderBy(e => e.Version))
+            {
+                var concreteEvent = GetEventFromSerializedEvent(serializedEvent);
+                if (concreteEvent != null)
+                {
+                    InvokeApplyMethod(aggregate, concreteEvent);
+                }
+            }
+            //var createCommand = _eventStore.Serializer.Deserialize<AggregateState>(snapshot.State, aggregate.CreateState().GetType());
+            //aggregate.State = _eventStore.Serializer.Deserialize<AggregateState>(snapshot.State, aggregate.CreateState().GetType());
+            return aggregate;
         }
 
         #endregion

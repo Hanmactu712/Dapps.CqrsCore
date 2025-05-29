@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <Authors>Dang Dinh Duc</Authors>
     <Description>Core library for persistence in cqrs + es pattern in .net 5
 Provide base class, interface &amp; default persistence stores</Description>

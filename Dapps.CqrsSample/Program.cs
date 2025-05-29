@@ -8,6 +8,7 @@ using Dapps.CqrsCore.Event;
 using Dapps.CqrsCore.Persistence;
 using Dapps.CqrsCore.Persistence.Read;
 using Dapps.CqrsCore.Persistence.Store;
+using Dapps.CqrsCore.Snapshots;
 using Dapps.CqrsSample.Data;
 using Dapps.CqrsSample.EventSourcing;
 using Microsoft.EntityFrameworkCore;
@@ -111,6 +112,8 @@ namespace Dapps.CqrsSample
                             option.Interval = 10;
                             option.LocalStorage = "C:\\Users\\ducdd\\OneDrive\\Desktop\\LocalStorage";
                         })
+                        //add custom snapshot repository if needed
+                        .AddSnapshotRepository<SnapshotRepository>()
                         //add custom snapshot Store DB if needed
                         .AddSnapshotStoreDb<SnapshotDbContext>(option =>
                         {
