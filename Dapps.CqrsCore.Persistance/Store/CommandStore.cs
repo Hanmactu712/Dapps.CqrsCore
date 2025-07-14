@@ -12,7 +12,7 @@ namespace Dapps.CqrsCore.Persistence.Store
     /// <summary>
     /// Default command store
     /// </summary>
-    public class CommandStore : BaseStore<ICommandDbContext>, ICommandStore
+    public class CommandStore : BaseStore<ICommandDbContext>, ICqrsCommandStore
     {
         private readonly string _offlineStorageFolder;
         private const string DefaultFolder = "Commands";
@@ -68,7 +68,7 @@ namespace Dapps.CqrsCore.Persistence.Store
             dbContext.SaveChanges();
         }
 
-        public SerializedCommand Serialize(ICommand command)
+        public SerializedCommand Serialize(ICqrsCommand command)
         {
             return command.Serialize(Serializer, command.Version);
         }

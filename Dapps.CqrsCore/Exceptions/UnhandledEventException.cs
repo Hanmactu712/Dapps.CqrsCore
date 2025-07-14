@@ -1,20 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Runtime.Serialization;
-using System.Text;
 
-namespace Dapps.CqrsCore.Exceptions
+namespace Dapps.CqrsCore.Exceptions;
+
+[Serializable]
+internal class UnhandledEventException : Exception
 {
-    [Serializable]
-    internal class UnhandledEventException : Exception
+    public UnhandledEventException(string name)
+        : base($"You must register at least one handler for this event ({name}).")
     {
-        public UnhandledEventException(string name)
-            : base($"You must register at least one handler for this event ({name}).")
-        {
-        }
+    }
 
-        protected UnhandledEventException(SerializationInfo info, StreamingContext context) : base(info, context)
-        {
-        }
+    protected UnhandledEventException(SerializationInfo info, StreamingContext context) : base(info, context)
+    {
     }
 }

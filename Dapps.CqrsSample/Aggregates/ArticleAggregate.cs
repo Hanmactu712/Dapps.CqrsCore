@@ -5,28 +5,28 @@ using Dapps.CqrsSample.EventHandlers;
 
 namespace Dapps.CqrsSample.Aggregates
 {
-    public class ArticleAggregate : AggregateRoot
+    public class ArticleAggregate : CqrsAggregateRoot
     {
         public override AggregateState CreateState()
         {
             return new ArticleState();
         }
 
-        public void CreateArticle(string title, string summary, string details, Guid userId, Guid commandId)
+        public void CreateArticle(string title, string summary, string details, Guid commandId)
         {
-            var ev = new ArticleCreated(Id, title, summary, details, userId, commandId);
+            var ev = new ArticleCreated(Id, title, summary, details, commandId);
 
             Apply(ev);
         }
 
-        public void UpdateArticle(Guid id, string title, string summary, string details, Guid userId, Guid commandId)
+        public void UpdateArticle(Guid id, string title, string summary, string details,Guid commandId)
         {
-            var ev = new ArticleUpdated(Id, title, summary, details, userId, commandId);
+            var ev = new ArticleUpdated(Id, title, summary, details, commandId);
 
             Apply(ev);
         }
 
-        public override void ApplyUnBoxingEvent(IEvent ev)
+        public override void ApplyUnBoxingEvent(ICqrsEvent ev)
         {
             Apply(ev);
         }

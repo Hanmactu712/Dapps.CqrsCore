@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Dapps.CqrsCore.Event;
 using Dapps.CqrsCore.Persistence.Read;
@@ -16,13 +17,12 @@ namespace Dapps.CqrsSample.EventHandlers
         public readonly string Summary;
         public readonly string Details;
 
-        public ArticleUpdated(Guid aggregateId, string title, string summary, string details, Guid userId, Guid commandId)
+        public ArticleUpdated(Guid aggregateId, string title, string summary, string details, Guid commandId)
         {
             AggregateId = aggregateId;
             Title = title;
             Summary = summary;
             Details = details;
-            UserId = userId;
             ReferenceId = commandId;
         }
     }
@@ -32,7 +32,7 @@ namespace Dapps.CqrsSample.EventHandlers
         private readonly ILogger<ArticleUpdatedHandler> _logger;
         private readonly IEfRepository<Article, ApplicationDbContext> _repository;
 
-        public ArticleUpdatedHandler(IEventQueue queue, ILogger<ArticleUpdatedHandler> logger, IServiceProvider service) : base(queue)
+        public ArticleUpdatedHandler(ICqrsEventQueue queue, ILogger<ArticleUpdatedHandler> logger, IServiceProvider service)
         {
             _logger = logger;
             _repository = service.CreateScope().ServiceProvider.GetRequiredService<IEfRepository<Article, ApplicationDbContext>>();
@@ -40,24 +40,25 @@ namespace Dapps.CqrsSample.EventHandlers
             _logger.LogInformation($"Register event {typeof(ArticleUpdated)}");
         }
 
-        public override void Handle(ArticleUpdated message)
+        public override async Task Handle(ArticleUpdated message, CancellationToken cancellationToken)
         {
             _logger.LogInformation($"================Handle event {typeof(ArticleUpdated)} - {message.Title}");
 
             var entity = _repository.GetById(message.AggregateId);
-            
+
             if (entity == null) return;
 
-            var article = message.MapTo(entity, new Dictionary<string, string>() {{"AggregateId", "Id"}});
-            _repository.Update(article);
+            entity.Title = message.Title;
+            entity.Summary = message.Summary;
+            entity.Details = message.Details;
+
+            _repository.Update(entity);
 
             _logger.LogInformation(
                 $"================Handle event {typeof(ArticleUpdated)} - {message.Title} is handled");
+
+            await Task.CompletedTask;
         }
 
-        public override Task HandleAsync(ArticleUpdated message)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

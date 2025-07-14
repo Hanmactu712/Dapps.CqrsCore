@@ -15,7 +15,7 @@ namespace Dapps.CqrsCore.Persistence.Store
     /// <summary>
     /// default event store
     /// </summary>
-    public class EventStore : BaseStore<IEventDbContext>, IEventStore
+    public class EventStore : BaseStore<IEventDbContext>, ICqrsEventStore
     {
         private readonly string _offlineStorageFolder;
         private const string DefaultFolder = "Events";
@@ -107,7 +107,7 @@ namespace Dapps.CqrsCore.Persistence.Store
                 .Any(x => x.AggregateId.Equals(aggregateId) && x.Version.Equals(version));
         }
 
-        public IEnumerable<IEvent> Get(Guid aggregateId, int fromVersion)
+        public IEnumerable<ICqrsEvent> Get(Guid aggregateId, int fromVersion)
         {
             return GetDbContext().Events.AsNoTracking()
                 .Where(x => x.AggregateId.Equals(aggregateId) && x.Version >= fromVersion)
@@ -120,7 +120,7 @@ namespace Dapps.CqrsCore.Persistence.Store
                 .ToList().AsEnumerable();
         }
 
-        public void Save(AggregateRoot aggregate, IEnumerable<IEvent> events)
+        public void Save(CqrsAggregateRoot aggregate, IEnumerable<ICqrsEvent> events)
         {
             var dbContext = GetDbContext();
 
@@ -170,7 +170,7 @@ namespace Dapps.CqrsCore.Persistence.Store
                 .AnyAsync(x => x.AggregateId.Equals(aggregateId) && x.Version.Equals(version));
         }
 
-        public async Task<IEnumerable<IEvent>> GetAsync(Guid aggregateId, int fromVersion)
+        public async Task<IEnumerable<ICqrsEvent>> GetAsync(Guid aggregateId, int fromVersion)
         {
             return await GetDbContext().Events.AsNoTracking()
                 .Where(x => x.AggregateId.Equals(aggregateId) && x.Version >= fromVersion)
@@ -183,7 +183,7 @@ namespace Dapps.CqrsCore.Persistence.Store
                 .ToListAsync();
         }
 
-        public async Task SaveAsync(AggregateRoot aggregate, IEnumerable<IEvent> events)
+        public async Task SaveAsync(CqrsAggregateRoot aggregate, IEnumerable<ICqrsEvent> events)
         {
             var dbContext = GetDbContext();
 

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Dapps.CqrsCore.Command;
 using Dapps.CqrsCore.Event;
 using Dapps.CqrsCore.Snapshots;
@@ -7,8 +9,9 @@ using Microsoft.Extensions.Logging;
 
 namespace Dapps.CqrsSample.CommandHandlers
 {
-    public class UnboxingArticle : Command
+    public class UnboxingArticle : CqrsCommand
     {
+        public Guid UserId { get; set; }
         public UnboxingArticle(Guid aggregateId, Guid userId)
         {
             AggregateId = aggregateId;
@@ -19,14 +22,14 @@ namespace Dapps.CqrsSample.CommandHandlers
     public class UnboxingArticleHandler : CommandHandler<UnboxingArticle>
     {
         private readonly ILogger<UnboxingArticle> _logger;
-        public UnboxingArticleHandler(ICommandQueue queue, IEventRepository eventRepository, IEventQueue eventQueue,
+        public UnboxingArticleHandler(ICqrsCommandQueue queue, ICqrsEventRepository eventRepository, ICqrsEventQueue eventQueue,
             ILogger<UnboxingArticle> logger, SnapshotRepository snapshotRepository) : base(queue, eventRepository, eventQueue, snapshotRepository)
         {
             _logger = logger;
             _logger.LogInformation("Init event handler");
         }
 
-        public override void Handle(UnboxingArticle command)
+        public override async Task Handle(UnboxingArticle command, CancellationToken cancellationToken)
         {
             //Console.WriteLine("Save to database");
             _logger.LogInformation("=========Handle UnboxingArticle");
@@ -35,7 +38,7 @@ namespace Dapps.CqrsSample.CommandHandlers
             
             _logger.LogInformation($"========= Title = {aggregate.Id}");
 
-            Commit(aggregate);
+            await CommitAsync(aggregate);
 
             _logger.LogInformation("=========Fire event to UnboxingArticle event handler");
         }

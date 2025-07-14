@@ -102,7 +102,7 @@ namespace Dapps.CqrsSample
                             //option.UseInMemoryDatabase("EventDb");
                         })
                         .AddSerializer<Serializer>() //add custom serializer if needed
-                        .AddCommandStore<CommandStore>( ) //add custom CommandStore if needed
+                        .AddCommandStore<CommandStore>() //add custom CommandStore if needed
                         .AddCommandQueue<CommandQueue>() //add custom CommandQueue if needed
                         .AddEventStore<EventStore>() //add custom EventStore if needed
                         .AddEventQueue<EventQueue>() //add custom EventQueue if needed
@@ -125,17 +125,7 @@ namespace Dapps.CqrsSample
                         .AddHandlers(option => option.HandlerAssemblyNames = new List<string>()
                         {
                             currentAssembly
-                        })
-                        //This functions will looking for all command handlers to register to Service Providers
-                        .AddCommandHandlers(option => option.HandlerAssemblyNames = new List<string>()
-                        {
-                            currentAssembly
-                        })
-                        //This functions will looking for all event handlers to register to Service Providers
-                        .AddEventHandlers(option => option.HandlerAssemblyNames = new List<string>()
-                        {
-                            currentAssembly
-                        });
+                        });                        
 
                     //add db context & repository for read part of the application
                     services.AddDbContext<ApplicationDbContext>(option =>

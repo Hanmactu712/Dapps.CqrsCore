@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using Dapps.CqrsCore.Persistence.Exceptions;
 using Dapps.CqrsCore.Snapshots;
-using Dapps.CqrsCore.Utilities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Dapps.CqrsCore.Persistence.Store
@@ -74,7 +73,14 @@ namespace Dapps.CqrsCore.Persistence.Store
             }
             else
             {
-                snapshot.MapTo(existingSnapshot);
+                existingSnapshot = new Snapshot()
+                {
+                    AggregateId = snapshot.AggregateId,
+                    Version = snapshot.Version,
+                    State = snapshot.State,
+                    Time = snapshot.Time,
+                };
+
                 dbContext.Entry(existingSnapshot).State = EntityState.Modified;
             }
 
