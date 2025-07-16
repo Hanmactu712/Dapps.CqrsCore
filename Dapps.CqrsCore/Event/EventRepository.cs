@@ -18,7 +18,7 @@ public class EventRepository : ICqrsEventRepository
     {
         _store = store ?? throw new ArgumentNullException(nameof(store));
     }
-    
+
     /// <summary>
     /// Gets an id from the event store.
     /// </summary>
@@ -84,7 +84,7 @@ public class EventRepository : ICqrsEventRepository
         aggregate.ReHydrate(events);
         return aggregate;
     }
-    
+
     private async Task<T> RehydrateAsync<T>(Guid id) where T : CqrsAggregateRoot
     {
         // Get all the events for the id.
@@ -121,11 +121,6 @@ public class EventRepository : ICqrsEventRepository
         throw new NotImplementedException();
     }
 
-    public Task<T> UnboxAsync<T>(Guid aggregate) where T : CqrsAggregateRoot
-    {
-        throw new NotImplementedException();
-    }
-
     /// <summary>
     /// Retrieves an id from offline storage and returns only its most recent state.
     /// </summary>
@@ -136,6 +131,11 @@ public class EventRepository : ICqrsEventRepository
     /// implementation.
     /// </remarks>
     public T Unbox<T>(Guid aggregateId) where T : CqrsAggregateRoot
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<T> UnboxAsync<T>(Guid aggregate) where T : CqrsAggregateRoot
     {
         throw new NotImplementedException();
     }

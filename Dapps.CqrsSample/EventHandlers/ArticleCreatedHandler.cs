@@ -26,12 +26,12 @@ public class ArticleCreated : Event
     }
 }
 
-public class ArticleCreatedHandler : CqrsCore.Event.EventHandler<ArticleCreated>
+public class ArticleCreatedHandler : ICqrsEventHandler<ArticleCreated>
 {
     private readonly ILogger<ArticleCreatedHandler> _logger;
     private readonly IEfRepository<Article, ApplicationDbContext> _repository;
 
-    public ArticleCreatedHandler(ICqrsEventQueue queue, ILogger<ArticleCreatedHandler> logger, IServiceProvider service)
+    public ArticleCreatedHandler(ICqrsEventDispatcher queue, ILogger<ArticleCreatedHandler> logger, IServiceProvider service)
     {
         _logger = logger;
         _repository = service.CreateScope().ServiceProvider.GetRequiredService<IEfRepository<Article, ApplicationDbContext>>();
@@ -39,7 +39,7 @@ public class ArticleCreatedHandler : CqrsCore.Event.EventHandler<ArticleCreated>
         _logger.LogInformation($"Register event {typeof(ArticleCreated)}");
     }
 
-    public override async Task Handle(ArticleCreated message, CancellationToken cancellationToken)
+    public async Task Handle(ArticleCreated message, CancellationToken cancellationToken)
     {
         _logger.LogInformation($"================Handle event {typeof(ArticleCreated)} - {message.Title}");
 

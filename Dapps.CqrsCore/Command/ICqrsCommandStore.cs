@@ -1,6 +1,7 @@
 ﻿using Dapps.CqrsCore.Utilities;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Dapps.CqrsCore.Command;
 
@@ -21,6 +22,7 @@ public interface ICqrsCommandStore
     /// <returns></returns>
     bool Exists(Guid commandID);
 
+    Task<bool> ExistsAsync(Guid commandID);
 
     /// <summary>
     /// Get a serialized command
@@ -29,12 +31,16 @@ public interface ICqrsCommandStore
     /// <returns></returns>
     SerializedCommand Get(Guid commandID);
 
+    Task<SerializedCommand> GetAsync(Guid commandID);
+
     /// <summary>
     /// Get a serialized commands based on aggregateId
     /// </summary>
     /// <param name="aggregateId"></param>
     /// <returns></returns>
     IEnumerable<SerializedCommand> GetByAggregateId(Guid aggregateId);
+
+    Task<IEnumerable<SerializedCommand>> GetByAggregateIdAsync(Guid aggregateId);
 
     /// <summary>
     /// Get all un-started commands that are scheduled to send now
@@ -43,12 +49,16 @@ public interface ICqrsCommandStore
     /// <returns></returns>
     IEnumerable<SerializedCommand> GetExpired(DateTimeOffset at);
 
+    Task<IEnumerable<SerializedCommand>> GetExpiredAsync(DateTimeOffset at);
+
     /// <summary>
     /// save command to store
     /// </summary>
     /// <param name="command"></param>
     /// <param name="isNew"></param>
     void Save(SerializedCommand command, bool isNew);
+
+    Task SaveAsync(SerializedCommand command, bool isNew);
 
     /// <summary>
     /// Serialize a command
@@ -70,10 +80,14 @@ public interface ICqrsCommandStore
     /// </remarks>
     void Box(Guid aggregateId);
 
+    Task BoxAsync(Guid aggregateId);
+
     /// <summary>
     /// Retrieve command from file and insert back to command store
     /// </summary>
     /// <param name="aggregateId"></param>
     /// <returns></returns>
     IEnumerable<SerializedCommand> UnBox(Guid aggregateId);
+
+    Task<IEnumerable<SerializedCommand>> UnBoxAsync(Guid aggregateId);
 }

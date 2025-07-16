@@ -6,10 +6,11 @@ namespace Dapps.CqrsCore.Event;
 /// <summary>
 /// Queue of event message
 /// </summary>
-public class EventQueue : ICqrsEventQueue
+public class EventDispatcher : ICqrsEventDispatcher
 {
     private readonly IMediator _mediator; //use MediatR to send command to handlers
-    public EventQueue(IMediator mediator)
+
+    public EventDispatcher(IMediator mediator)
     {
         _mediator = mediator;
     }

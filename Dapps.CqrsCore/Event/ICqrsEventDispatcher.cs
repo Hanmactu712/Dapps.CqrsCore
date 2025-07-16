@@ -5,7 +5,7 @@ namespace Dapps.CqrsCore.Event;
 /// <summary>
 /// Interface of Event Queue
 /// </summary>
-public interface ICqrsEventQueue
+public interface ICqrsEventDispatcher
 {
     /// <summary>
     /// publish event to queue

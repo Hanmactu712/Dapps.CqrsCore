@@ -27,12 +27,12 @@ namespace Dapps.CqrsSample.EventHandlers
         }
     }
 
-    public class ArticleUpdatedHandler : Dapps.CqrsCore.Event.EventHandler<ArticleUpdated>
+    public class ArticleUpdatedHandler : ICqrsEventHandler<ArticleUpdated>
     {
         private readonly ILogger<ArticleUpdatedHandler> _logger;
         private readonly IEfRepository<Article, ApplicationDbContext> _repository;
 
-        public ArticleUpdatedHandler(ICqrsEventQueue queue, ILogger<ArticleUpdatedHandler> logger, IServiceProvider service)
+        public ArticleUpdatedHandler(ICqrsEventDispatcher queue, ILogger<ArticleUpdatedHandler> logger, IServiceProvider service)
         {
             _logger = logger;
             _repository = service.CreateScope().ServiceProvider.GetRequiredService<IEfRepository<Article, ApplicationDbContext>>();
@@ -40,7 +40,7 @@ namespace Dapps.CqrsSample.EventHandlers
             _logger.LogInformation($"Register event {typeof(ArticleUpdated)}");
         }
 
-        public override async Task Handle(ArticleUpdated message, CancellationToken cancellationToken)
+        public async Task Handle(ArticleUpdated message, CancellationToken cancellationToken)
         {
             _logger.LogInformation($"================Handle event {typeof(ArticleUpdated)} - {message.Title}");
 

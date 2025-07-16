@@ -106,7 +106,7 @@ public static class CqrsServiceCollectionExtensions
     private static ICqrsServiceBuilder AddDefaultCommandQueue(this ICqrsServiceBuilder builder)
     {
         builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Register CommandQueue........");
-        builder.Services.AddSingleton(typeof(ICqrsCommandQueue), typeof(CommandQueue));
+        builder.Services.AddSingleton(typeof(ICqrsCommandDispatcher), typeof(CommandDispatcher));
         builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Register CommandQueue........Done!");
         return builder;
     }
@@ -130,7 +130,7 @@ public static class CqrsServiceCollectionExtensions
     private static ICqrsServiceBuilder AddDefaultEventQueue(this ICqrsServiceBuilder builder)
     {
         builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Register EventQueue........");
-        builder.Services.AddSingleton(typeof(ICqrsEventQueue), typeof(EventQueue));
+        builder.Services.AddSingleton(typeof(ICqrsEventDispatcher), typeof(EventDispatcher));
         builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Register EventQueue........Done!");
         return builder;
     }
@@ -390,10 +390,10 @@ public static class CqrsServiceCollectionExtensions
     /// <param name="builder"></param>
     /// <returns></returns>
     public static ICqrsServiceBuilder AddEventQueue<TQueue>(this ICqrsServiceBuilder builder)
-        where TQueue : ICqrsEventQueue
+        where TQueue : ICqrsEventDispatcher
     {
         builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Overriding Event Queue........");
-        builder.Services.Replace(new ServiceDescriptor(typeof(ICqrsEventQueue), typeof(TQueue),
+        builder.Services.Replace(new ServiceDescriptor(typeof(ICqrsEventDispatcher), typeof(TQueue),
             ServiceLifetime.Singleton));
 
         builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Overriding Event Queue........ Done!");
@@ -424,11 +424,11 @@ public static class CqrsServiceCollectionExtensions
     /// <param name="builder"></param>
     /// <returns></returns>
     public static ICqrsServiceBuilder AddCommandQueue<TQueue>(this ICqrsServiceBuilder builder)
-        where TQueue : ICqrsCommandQueue
+        where TQueue : ICqrsCommandDispatcher
     {
         builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Overriding Command Queue........");
 
-        builder.Services.Replace(new ServiceDescriptor(typeof(ICqrsCommandQueue), typeof(TQueue),
+        builder.Services.Replace(new ServiceDescriptor(typeof(ICqrsCommandDispatcher), typeof(TQueue),
             ServiceLifetime.Singleton));
 
         builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Overriding Command Queue........ Done!");

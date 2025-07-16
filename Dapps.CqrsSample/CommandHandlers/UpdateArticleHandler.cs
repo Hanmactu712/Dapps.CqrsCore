@@ -28,7 +28,7 @@ namespace Dapps.CqrsSample.CommandHandlers
     public class UpdateArticleHandler : CommandHandler<UpdateArticle>
     {
         private readonly ILogger<UpdateArticle> _logger;
-        public UpdateArticleHandler(ICqrsCommandQueue queue, ICqrsEventRepository eventRepository, ICqrsEventQueue eventQueue,
+        public UpdateArticleHandler(ICqrsCommandDispatcher queue, ICqrsEventRepository eventRepository, ICqrsEventDispatcher eventQueue,
             ILogger<UpdateArticle> logger, SnapshotRepository snapshotRepository) : base(queue, eventRepository, eventQueue, snapshotRepository)
         {
             _logger = logger;

@@ -11,10 +11,12 @@ public class Snapshot
     /// Aggregate Id
     /// </summary>
     public Guid AggregateId { get; set; }
+
     /// <summary>
     /// Version of event
     /// </summary>
     public int Version { get; set; }
+
     /// <summary>
     /// State of event
     /// </summary>

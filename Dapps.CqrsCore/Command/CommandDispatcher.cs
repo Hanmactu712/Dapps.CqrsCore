@@ -3,19 +3,20 @@ using MediatR;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Dapps.CqrsCore.Command;
 
 /// <summary>
-/// Default implementation of <see cref="ICqrsCommandQueue"/> interface. Which is handlers for commands in memory and use <see cref="ICqrsCommandStore"/> to store commands.
+/// Default implementation of <see cref="ICqrsCommandDispatcher"/> interface. Which is handlers for commands in memory and use <see cref="ICqrsCommandStore"/> to store commands.
 /// </summary>
-public class CommandQueue : ICqrsCommandQueue
+public class CommandDispatcher : ICqrsCommandDispatcher
 {
     private readonly ICqrsCommandStore _store;
     private readonly bool _saveAll;
     private readonly IMediator _mediator; //use MediatR to send command to handlers
 
-    public CommandQueue(ICqrsCommandStore store, CommandStoreOptions option, IMediator mediator)
+    public CommandDispatcher(ICqrsCommandStore store, CommandStoreOptions option, IMediator mediator)
     {
         _store = store ?? throw new ArgumentNullException(nameof(ICqrsCommandStore));
         if (option == null)
@@ -42,6 +43,17 @@ public class CommandQueue : ICqrsCommandQueue
         }
     }
 
+    public async Task CancelAsync(Guid commandId)
+    {
+        var serializedCommand = _store.Get(commandId);
+        if (serializedCommand != null)
+        {
+            serializedCommand.SendCancelled = DateTimeOffset.UtcNow;
+            serializedCommand.SendStatus = CommandStatus.Cancelled;
+            await _store.SaveAsync(serializedCommand, false);
+        }
+    }
+
     /// <summary>
     /// complete a scheduled command
     /// </summary>
@@ -57,6 +69,17 @@ public class CommandQueue : ICqrsCommandQueue
         }
     }
 
+    public async Task CompleteAsync(Guid commandId)
+    {
+        var serializedCommand = _store.Get(commandId);
+        if (serializedCommand != null)
+        {
+            serializedCommand.SendCompleted = DateTimeOffset.UtcNow;
+            serializedCommand.SendStatus = CommandStatus.Completed;
+            await _store.SaveAsync(serializedCommand, false);
+        }
+    }
+
     /// <summary>
     /// schedule a command 
     /// </summary>
@@ -66,12 +89,24 @@ public class CommandQueue : ICqrsCommandQueue
     {
         var serializedCommand = _store.Serialize(command);
 
-        if(serializedCommand == null) 
+        if (serializedCommand == null)
             throw new ArgumentNullException(nameof(CommandStoreOptions));
 
         serializedCommand.SendScheduled = at;
         serializedCommand.SendStatus = CommandStatus.Scheduled;
         _store.Save(serializedCommand, true);
+    }
+
+    public async Task ScheduleAsync(ICqrsCommand command, DateTimeOffset at)
+    {
+        var serializedCommand = _store.Serialize(command);
+
+        if (serializedCommand == null)
+            throw new ArgumentNullException(nameof(CommandStoreOptions));
+
+        serializedCommand.SendScheduled = at;
+        serializedCommand.SendStatus = CommandStatus.Scheduled;
+        await _store.SaveAsync(serializedCommand, true);
     }
 
     /// <summary>
@@ -88,7 +123,8 @@ public class CommandQueue : ICqrsCommandQueue
             serialized.SendStarted = DateTimeOffset.UtcNow;
         }
 
-        Execute(command);
+        var task = ExecuteAsync(command);
+        task.Wait();
 
         if (_saveAll)
         {
@@ -99,12 +135,34 @@ public class CommandQueue : ICqrsCommandQueue
                 _store.Save(serialized, true);
             }
         }
-
     }
 
-    private void Execute(ICqrsCommand command)
+    public async Task SendAsync(ICqrsCommand command)
     {
-        _mediator.Send(command);
+        SerializedCommand serialized = null;
+
+        if (_saveAll)
+        {
+            serialized = _store.Serialize(command);
+            serialized.SendStarted = DateTimeOffset.UtcNow;
+        }
+
+        await ExecuteAsync(command);
+
+        if (_saveAll)
+        {
+            if (serialized != null)
+            {
+                serialized.SendCompleted = DateTimeOffset.UtcNow;
+                serialized.SendStatus = CommandStatus.Completed;
+                _store.Save(serialized, true);
+            }
+        }
+    }
+
+    private async Task ExecuteAsync(ICqrsCommand command)
+    {
+        await _mediator.Send(command);
     }
 
     /// <summary>
@@ -116,20 +174,42 @@ public class CommandQueue : ICqrsCommandQueue
         Execute(_store.Get(commandId));
     }
 
+    public async Task StartAsync(Guid commandId)
+    {
+        await ExecuteAsync(await _store.GetAsync(commandId));
+    }
+
     /// <summary>
     /// execute a command asynchronously
     /// </summary>
     /// <param name="serializedCommand"></param>
     private void Execute(SerializedCommand serializedCommand)
     {
-        if (serializedCommand == null) 
+        if (serializedCommand == null)
             throw new ArgumentNullException(nameof(SerializedCommand));
 
         serializedCommand.SendStarted = DateTimeOffset.UtcNow;
         serializedCommand.SendStatus = CommandStatus.Started;
         _store.Save(serializedCommand, false);
 
-        Execute(serializedCommand.Deserialize(_store.Serializer));
+        var task = ExecuteAsync(serializedCommand.Deserialize(_store.Serializer));
+        task.Wait();
+
+        serializedCommand.SendCompleted = DateTimeOffset.UtcNow;
+        serializedCommand.SendStatus = CommandStatus.Completed;
+        _store.Save(serializedCommand, false);
+    }
+
+    private async Task ExecuteAsync(SerializedCommand serializedCommand)
+    {
+        if (serializedCommand == null)
+            throw new ArgumentNullException(nameof(SerializedCommand));
+
+        serializedCommand.SendStarted = DateTimeOffset.UtcNow;
+        serializedCommand.SendStatus = CommandStatus.Started;
+        _store.Save(serializedCommand, false);
+
+        await ExecuteAsync(serializedCommand.Deserialize(_store.Serializer));
 
         serializedCommand.SendCompleted = DateTimeOffset.UtcNow;
         serializedCommand.SendStatus = CommandStatus.Completed;
@@ -143,7 +223,17 @@ public class CommandQueue : ICqrsCommandQueue
     {
         var commands = _store.GetExpired(DateTimeOffset.UtcNow);
         foreach (var command in commands)
-            Execute(command);
+        {
+            var task = ExecuteAsync(command);
+            task.Wait();
+        }
+    }
+
+    public async Task PingAsync()
+    {
+        var commands = _store.GetExpired(DateTimeOffset.UtcNow);
+        foreach (var command in commands)
+            await ExecuteAsync(command);
 
     }
 }

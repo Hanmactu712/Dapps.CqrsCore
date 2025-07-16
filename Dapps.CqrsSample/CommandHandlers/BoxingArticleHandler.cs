@@ -24,7 +24,7 @@ namespace Dapps.CqrsSample.CommandHandlers
     {
         private readonly ILogger<BoxingArticle> _logger;
         private readonly ICqrsCommandStore _commandStore;
-        public BoxingArticleHandler(ICqrsCommandQueue queue, ICqrsEventRepository eventRepository, ICqrsEventQueue eventQueue,
+        public BoxingArticleHandler(ICqrsCommandDispatcher queue, ICqrsEventRepository eventRepository, ICqrsEventDispatcher eventQueue,
             ILogger<BoxingArticle> logger, SnapshotRepository snapshotRepository, ICqrsCommandStore commandStore) : base(queue, eventRepository, eventQueue, snapshotRepository)
         {
             _logger = logger;

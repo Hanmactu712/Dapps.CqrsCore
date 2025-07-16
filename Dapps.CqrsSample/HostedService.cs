@@ -16,10 +16,10 @@ namespace Dapps.CqrsSample
         private readonly IServiceProvider _provider;
         private ICqrsCommandHandler<CreateArticle> _cmdHandler;
         private ICqrsEventHandler<ArticleCreated> _eventHandler;
-        private readonly ICqrsCommandQueue _queue;
+        private readonly ICqrsCommandDispatcher _queue;
         private readonly ILogger<HostedService> _logger;
 
-        public HostedService(IServiceProvider provider, ILogger<HostedService> logger, ICqrsCommandQueue queue)
+        public HostedService(IServiceProvider provider, ILogger<HostedService> logger, ICqrsCommandDispatcher queue)
         {
             //_provider = provider;
             //_cmdHandler = provider.GetRequiredService<ICqrsCommandHandler<CreateArticle>>();

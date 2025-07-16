@@ -28,5 +28,6 @@ public abstract class CqrsCommand : ICqrsCommand
     {
         Id = Guid.NewGuid();
         Time = DateTimeOffset.UtcNow;
+        Version = 1;
     }
 }

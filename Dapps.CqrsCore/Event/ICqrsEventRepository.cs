@@ -54,10 +54,7 @@ public interface ICqrsEventRepository
     /// <returns></returns>
     Task BoxAsync<T>(T aggregate) where T : CqrsAggregateRoot;
 
-    /// <summary>
-    /// Asynchronously Retrieves an aggregate from offline storage and returns only its most recent state.
-    /// </summary>
-    Task<T> UnboxAsync<T>(Guid aggregate) where T : CqrsAggregateRoot;
+    
 
     /// <summary>
     /// Retrieves an aggregate from offline storage and returns only its most recent state.
@@ -66,4 +63,9 @@ public interface ICqrsEventRepository
     /// <param name="aggregate"></param>
     /// <returns></returns>
     T Unbox<T>(Guid aggregate) where T : CqrsAggregateRoot;
+
+    /// <summary>
+    /// Asynchronously Retrieves an aggregate from offline storage and returns only its most recent state.
+    /// </summary>
+    Task<T> UnboxAsync<T>(Guid aggregate) where T : CqrsAggregateRoot;
 }

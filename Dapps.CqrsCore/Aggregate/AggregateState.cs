@@ -14,7 +14,7 @@ public abstract class AggregateState
             throw new MethodNotFoundException(GetType(), "When", ev.GetType());
         }
 
-        when.Invoke(this, new object[] { ev });
+        when.Invoke(this, [ev]);
     }
 
     public void AssignStateValue(ICqrsEvent message)

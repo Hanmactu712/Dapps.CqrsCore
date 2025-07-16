@@ -29,7 +29,7 @@ namespace Dapps.CqrsSample.CommandHandlers
     public class CreateArticleHandler : CommandHandler<CreateArticle>
     {
         private readonly ILogger<CreateArticle> _logger;
-        public CreateArticleHandler(ICqrsCommandQueue queue, ICqrsEventRepository eventRepository, ICqrsEventQueue eventQueue,
+        public CreateArticleHandler(ICqrsCommandDispatcher queue, ICqrsEventRepository eventRepository, ICqrsEventDispatcher eventQueue,
             ILogger<CreateArticle> logger, SnapshotRepository snapshotRepository) : base(queue, eventRepository, eventQueue, snapshotRepository)
         {
             _logger = logger;

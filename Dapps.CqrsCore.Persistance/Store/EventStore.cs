@@ -19,6 +19,7 @@ namespace Dapps.CqrsCore.Persistence.Store
     {
         private readonly string _offlineStorageFolder;
         private const string DefaultFolder = "Events";
+
         public EventStore(ISerializer serializer, IServiceProvider service, EventStoreOptions options) : base(service)
         {
             Serializer = serializer ?? throw new ArgumentNullException(nameof(ISerializer));
@@ -131,7 +132,7 @@ namespace Dapps.CqrsCore.Persistence.Store
                 listEvents.Add(ev.Serialize(Serializer, aggregate.Id, ev.Version));
             }
 
-            //using var transaction = Context.Database.BeginTransaction();
+            dbContext.BeginTransaction();
 
             EnsureAggregateExist(aggregate.Id, aggregate.GetType().Name.Replace("Aggregate", string.Empty),
                 aggregate.GetType().FullName);
@@ -143,7 +144,7 @@ namespace Dapps.CqrsCore.Persistence.Store
 
             dbContext.SaveChanges();
 
-            //transaction.Commit();
+            dbContext.Commit();
         }
 
         private void EnsureAggregateExist(Guid aggregateId, string className, string classType)
@@ -194,7 +195,7 @@ namespace Dapps.CqrsCore.Persistence.Store
                 listEvents.Add(ev.Serialize(Serializer, aggregate.Id, ev.Version));
             }
 
-            //using var transaction = Context.Database.BeginTransaction();
+            await dbContext.BeginTransactionAsync();
 
             EnsureAggregateExist(aggregate.Id, aggregate.GetType().Name.Replace("Aggregate", string.Empty),
                 aggregate.GetType().FullName);
@@ -206,7 +207,7 @@ namespace Dapps.CqrsCore.Persistence.Store
 
             dbContext.SaveChanges();
 
-            //transaction.Commit();
+            await dbContext.CommitAsync();
         }
 
         public async Task BoxAsync(Guid aggregateId)

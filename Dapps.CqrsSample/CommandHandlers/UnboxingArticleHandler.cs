@@ -22,7 +22,7 @@ namespace Dapps.CqrsSample.CommandHandlers
     public class UnboxingArticleHandler : CommandHandler<UnboxingArticle>
     {
         private readonly ILogger<UnboxingArticle> _logger;
-        public UnboxingArticleHandler(ICqrsCommandQueue queue, ICqrsEventRepository eventRepository, ICqrsEventQueue eventQueue,
+        public UnboxingArticleHandler(ICqrsCommandDispatcher queue, ICqrsEventRepository eventRepository, ICqrsEventDispatcher eventQueue,
             ILogger<UnboxingArticle> logger, SnapshotRepository snapshotRepository) : base(queue, eventRepository, eventQueue, snapshotRepository)
         {
             _logger = logger;

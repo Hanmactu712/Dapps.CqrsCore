@@ -13,11 +13,11 @@ namespace Dapps.CqrsCore.Command;
 public abstract class CommandHandler<TCommand> : ICqrsCommandHandler<TCommand> where TCommand : ICqrsCommand
 {
     private readonly ICqrsEventRepository _repository;
-    private readonly ICqrsEventQueue _eventQueue;
+    private readonly ICqrsEventDispatcher _eventQueue;
 
-    protected CommandHandler(ICqrsCommandQueue queue, ICqrsEventRepository eventRepository, ICqrsEventQueue eventQueue, SnapshotRepository snapshotRepository = null)
+    protected CommandHandler(ICqrsCommandDispatcher queue, ICqrsEventRepository eventRepository, ICqrsEventDispatcher eventQueue, SnapshotRepository snapshotRepository = null)
     {
-        _eventQueue = eventQueue ?? throw new ArgumentNullException(nameof(ICqrsCommandQueue));
+        _eventQueue = eventQueue ?? throw new ArgumentNullException(nameof(ICqrsCommandDispatcher));
 
         //using snapshot repository if any, otherwise using normal event repository
         _repository = snapshotRepository ??
@@ -36,6 +36,17 @@ public abstract class CommandHandler<TCommand> : ICqrsCommandHandler<TCommand> w
     public virtual T Get<T>(Guid id) where T : CqrsAggregateRoot
     {
         return _repository.Get<T>(id);
+    }
+
+    /// <summary>
+    /// Get aggregate from event sourcing asynchronously
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    public virtual async Task<T> GetAsync<T>(Guid id) where T : CqrsAggregateRoot
+    {
+        return await _repository.GetAsync<T>(id);
     }
 
     /// <summary>
@@ -51,6 +62,11 @@ public abstract class CommandHandler<TCommand> : ICqrsCommandHandler<TCommand> w
         }
     }
 
+    /// <summary>
+    /// commit all changes of a aggregate to event sourcing asynchronously
+    /// </summary>
+    /// <param name="aggregate"></param>
+    /// <returns></returns>
     public virtual async Task CommitAsync(CqrsAggregateRoot aggregate)
     {
         var changes = _repository.Save(aggregate);
@@ -66,6 +82,9 @@ public abstract class CommandHandler<TCommand> : ICqrsCommandHandler<TCommand> w
     /// <param name="message"></param>        
     public abstract Task Handle(TCommand request, CancellationToken cancellationToken);
 
+    /// <summary>
+    /// Get the event repository used to persist events and aggregates
+    /// </summary>
     protected ICqrsEventRepository EventRepository => _repository;
 }
 
@@ -76,11 +95,11 @@ public abstract class CommandHandler<TCommand> : ICqrsCommandHandler<TCommand> w
 public abstract class CommandHandler<TCommand, TResult> : ICqrsCommandHandler<TCommand, TResult> where TCommand : ICqrsCommand<TResult>
 {
     private readonly ICqrsEventRepository _repository;
-    private readonly ICqrsEventQueue _eventQueue;
+    private readonly ICqrsEventDispatcher _eventQueue;
 
-    protected CommandHandler(ICqrsCommandQueue queue, ICqrsEventRepository eventRepository, ICqrsEventQueue eventQueue, SnapshotRepository snapshotRepository = null)
+    protected CommandHandler(ICqrsCommandDispatcher queue, ICqrsEventRepository eventRepository, ICqrsEventDispatcher eventQueue, SnapshotRepository snapshotRepository = null)
     {
-        _eventQueue = eventQueue ?? throw new ArgumentNullException(nameof(ICqrsCommandQueue));
+        _eventQueue = eventQueue ?? throw new ArgumentNullException(nameof(ICqrsCommandDispatcher));
 
         //using snapshot repository if any, otherwise using normal event repository
         _repository = snapshotRepository ??
@@ -99,6 +118,17 @@ public abstract class CommandHandler<TCommand, TResult> : ICqrsCommandHandler<TC
     public virtual T Get<T>(Guid id) where T : CqrsAggregateRoot
     {
         return _repository.Get<T>(id);
+    }
+
+    /// <summary>
+    /// Get aggregate from event sourcing asynchronously
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    public virtual async Task<T> GetAsync<T>(Guid id) where T : CqrsAggregateRoot
+    {
+        return await _repository.GetAsync<T>(id);
     }
 
     /// <summary>

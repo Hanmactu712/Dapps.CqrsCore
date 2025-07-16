@@ -103,9 +103,9 @@ namespace Dapps.CqrsSample
                         })
                         .AddSerializer<Serializer>() //add custom serializer if needed
                         .AddCommandStore<CommandStore>() //add custom CommandStore if needed
-                        .AddCommandQueue<CommandQueue>() //add custom CommandQueue if needed
+                        .AddCommandQueue<CommandDispatcher>() //add custom CommandQueue if needed
                         .AddEventStore<EventStore>() //add custom EventStore if needed
-                        .AddEventQueue<EventQueue>() //add custom EventQueue if needed
+                        .AddEventQueue<EventDispatcher>() //add custom EventQueue if needed
                         .AddEventRepository<EventRepository>() //add custom EventRepository if needed
                         .AddSnapshotFeature(option =>
                         {
