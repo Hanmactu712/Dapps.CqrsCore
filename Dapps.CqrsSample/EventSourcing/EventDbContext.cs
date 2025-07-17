@@ -12,13 +12,13 @@ namespace Dapps.CqrsSample.EventSourcing
     public class EventDbContext : DbContext, IEventDbContext
     {
         private IDbContextTransaction _transaction;
+
         public EventDbContext(DbContextOptions<EventDbContext> options) : base(options)
         {
 
         }
         public DbSet<SerializedAggregate> Aggregates { get; set; }
         public DbSet<SerializedEvent> Events { get; set; }
-
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -29,7 +29,6 @@ namespace Dapps.CqrsSample.EventSourcing
             modelBuilder.ApplyConfiguration(new AggregateConfiguration(""));
             
         }
-
 
         public void BeginTransaction()
         {
@@ -75,5 +74,18 @@ namespace Dapps.CqrsSample.EventSourcing
             _transaction = null;
         }
 
+        public void Rollback()
+        {
+            _transaction.Rollback();
+            _transaction.Dispose();
+            _transaction = null;
+        }
+
+        public async Task RollbackAsync()
+        {
+            await _transaction.RollbackAsync();
+            await _transaction.DisposeAsync();
+            _transaction = null;
+        }
     }
 }

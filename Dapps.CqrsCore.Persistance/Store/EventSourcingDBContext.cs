@@ -74,6 +74,20 @@ namespace Dapps.CqrsCore.Persistence.Store
             _transaction = null;
         }
 
+        public void Rollback()
+        {
+            _transaction.Rollback();
+            _transaction.Dispose();
+            _transaction = null;
+        }
+
+        public async Task RollbackAsync()
+        {
+            await _transaction.RollbackAsync();
+            await _transaction.DisposeAsync();
+            _transaction = null;
+        }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
