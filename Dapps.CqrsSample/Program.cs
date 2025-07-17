@@ -8,6 +8,7 @@ using Dapps.CqrsCore.Event;
 using Dapps.CqrsCore.Persistence;
 using Dapps.CqrsCore.Persistence.Read;
 using Dapps.CqrsCore.Persistence.Store;
+using Dapps.CqrsCore.Snapshots;
 using Dapps.CqrsSample.Data;
 using Dapps.CqrsSample.EventSourcing;
 using Microsoft.EntityFrameworkCore;
@@ -101,16 +102,18 @@ namespace Dapps.CqrsSample
                             //option.UseInMemoryDatabase("EventDb");
                         })
                         .AddSerializer<Serializer>() //add custom serializer if needed
-                        .AddCommandStore<CommandStore>( ) //add custom CommandStore if needed
-                        .AddCommandQueue<CommandQueue>() //add custom CommandQueue if needed
+                        .AddCommandStore<CommandStore>() //add custom CommandStore if needed
+                        .AddCommandQueue<CommandDispatcher>() //add custom CommandQueue if needed
                         .AddEventStore<EventStore>() //add custom EventStore if needed
-                        .AddEventQueue<EventQueue>() //add custom EventQueue if needed
+                        .AddEventQueue<EventDispatcher>() //add custom EventQueue if needed
                         .AddEventRepository<EventRepository>() //add custom EventRepository if needed
                         .AddSnapshotFeature(option =>
                         {
                             option.Interval = 10;
                             option.LocalStorage = "C:\\Users\\ducdd\\OneDrive\\Desktop\\LocalStorage";
                         })
+                        //add custom snapshot repository if needed
+                        .AddSnapshotRepository<SnapshotRepository>()
                         //add custom snapshot Store DB if needed
                         .AddSnapshotStoreDb<SnapshotDbContext>(option =>
                         {
@@ -122,17 +125,7 @@ namespace Dapps.CqrsSample
                         .AddHandlers(option => option.HandlerAssemblyNames = new List<string>()
                         {
                             currentAssembly
-                        })
-                        //This functions will looking for all command handlers to register to Service Providers
-                        .AddCommandHandlers(option => option.HandlerAssemblyNames = new List<string>()
-                        {
-                            currentAssembly
-                        })
-                        //This functions will looking for all event handlers to register to Service Providers
-                        .AddEventHandlers(option => option.HandlerAssemblyNames = new List<string>()
-                        {
-                            currentAssembly
-                        });
+                        });                        
 
                     //add db context & repository for read part of the application
                     services.AddDbContext<ApplicationDbContext>(option =>

@@ -2,34 +2,33 @@
 using System;
 using System.Linq.Expressions;
 
-namespace Dapps.CqrsCore.Aggregate
+namespace Dapps.CqrsCore.Aggregate;
+
+internal class AggregateFactory<T>
 {
-    internal class AggregateFactory<T>
+    private static readonly Func<T> Constructor = CreateTypeConstructor();
+
+    internal static T CreateAggregate()
     {
-        private static readonly Func<T> Constructor = CreateTypeConstructor();
-
-        internal static T CreateAggregate()
+        if (Constructor == null)
         {
-            if (Constructor == null)
-            {
-                throw new MissingDefaultConstructorException(typeof(T));
-            }
-            return Constructor();
+            throw new MissingDefaultConstructorException(typeof(T));
         }
+        return Constructor();
+    }
 
-        private static Func<T> CreateTypeConstructor()
+    private static Func<T> CreateTypeConstructor()
+    {
+        try
         {
-            try
-            {
-                var expr = Expression.New(typeof(T));
-                var func = Expression.Lambda<Func<T>>(expr);
+            var expr = Expression.New(typeof(T));
+            var func = Expression.Lambda<Func<T>>(expr);
 
-                return func.Compile();
-            }
-            catch (ArgumentException)
-            {
-                return null;
-            }
+            return func.Compile();
+        }
+        catch (ArgumentException)
+        {
+            return null;
         }
     }
 }

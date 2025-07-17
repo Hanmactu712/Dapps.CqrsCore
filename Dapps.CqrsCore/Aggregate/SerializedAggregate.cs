@@ -1,20 +1,29 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace Dapps.CqrsCore.Aggregate
+namespace Dapps.CqrsCore.Aggregate;
+
+/// <summary>
+/// Provides a serialization wrapper for aggregates so we can use Entity Framework for basic DAL operations.
+/// </summary>
+public class SerializedAggregate
 {
     /// <summary>
-    /// Provides a serialization wrapper for aggregates so we can use Entity Framework for basic DAL operations.
+    /// The class name of the aggregate.
     /// </summary>
-    public class SerializedAggregate
-    {
-        public string Class { get; set; }
-        public DateTimeOffset? Expires { get; set; }
+    public string Class { get; set; }
 
-        public Guid AggregateId { get; set; }
+    /// <summary>
+    /// The Expires date of the aggregate.
+    /// </summary>
+    public DateTimeOffset? Expires { get; set; }
 
-        public string Type { get; set; }
+    /// <summary>
+    /// The aggregate identifier.
+    /// </summary>
+    public Guid AggregateId { get; set; }
 
-    }
+    /// <summary>
+    /// The Class type of the aggregate.
+    /// </summary>
+    public string Type { get; set; }
 }

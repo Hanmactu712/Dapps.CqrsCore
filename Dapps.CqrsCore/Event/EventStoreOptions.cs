@@ -1,16 +1,15 @@
 ﻿using System;
 using System.IO;
 
-namespace Dapps.CqrsCore.Event
+namespace Dapps.CqrsCore.Event;
+
+/// <summary>
+/// Options for command store
+/// </summary>
+public class EventStoreOptions
 {
     /// <summary>
-    /// Options for command store
+    /// Location to save data of events when boxing & unboxing
     /// </summary>
-    public class EventStoreOptions
-    {
-        /// <summary>
-        /// Location to save data of events when boxing & unboxing
-        /// </summary>
-        public string EventLocalStorage { get; set; } = AppDomain.CurrentDomain.BaseDirectory;
-    }
+    public string EventLocalStorage { get; set; } = AppDomain.CurrentDomain.BaseDirectory;
 }

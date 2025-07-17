@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <Authors>Dang Dinh Duc</Authors>
     <Description>Core library for persistence in cqrs + es pattern in .net 5
 Provide base class, interface &amp; default persistence stores</Description>
@@ -23,10 +23,11 @@ Provide base class, interface &amp; default persistence stores</Description>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ardalis.specification" Version="5.1.0" />
-    <PackageReference Include="ardalis.specification.entityframeworkcore" Version="5.1.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.8" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.sqlserver" Version="5.0.8" />
+    <PackageReference Include="ardalis.specification" Version="9.2.0" />
+    <PackageReference Include="ardalis.specification.entityframeworkcore" Version="9.2.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.7" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.sqlserver" Version="9.0.7" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
   <ItemGroup>

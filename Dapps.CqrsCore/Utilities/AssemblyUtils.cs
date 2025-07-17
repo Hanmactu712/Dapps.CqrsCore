@@ -3,69 +3,61 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 
-namespace Dapps.CqrsCore.Utilities
+namespace Dapps.CqrsCore.Utilities;
+
+public static class AssemblyUtils
 {
-    public static class AssemblyUtils
+    public static Type[] GetTypesInNameSpace(Assembly assembly, string nameSpace)
     {
-        public static Type[] GetTypesInNameSpace(Assembly assembly, string nameSpace)
-        {
-            return
-                !string.IsNullOrEmpty(nameSpace) ?
-                assembly.GetTypes()
+        return
+            !string.IsNullOrEmpty(nameSpace) ?
+            assembly.GetTypes()
+                .Where(t => t.Namespace != null && t.Namespace.Contains(nameSpace, StringComparison.Ordinal))
+                .ToArray()
+            : assembly.GetTypes()
+                .ToArray();
+    }
+
+    public static Type[] GetTypesDerivedFromType(Assembly assembly, Type type, string nameSpace = "")
+    {
+        var x = assembly.GetTypes();
+        var y = assembly.GetTypes().Where(t => t.Namespace != null && t.Namespace.Contains(nameSpace, StringComparison.Ordinal)).ToList();
+        var z = assembly.GetTypes()
+            .Where(t => t.Namespace != null && t.Namespace.Contains(nameSpace, StringComparison.Ordinal)).Where(t =>
+                t.IsAssignableTo(type)).ToList();
+
+        return
+            !string.IsNullOrEmpty(nameSpace)
+                ? assembly.GetTypes()
                     .Where(t => t.Namespace != null && t.Namespace.Contains(nameSpace, StringComparison.Ordinal))
+                    .Where(type.IsAssignableFrom)
                     .ToArray()
                 : assembly.GetTypes()
+                    .Where(type.IsAssignableFrom)
                     .ToArray();
-        }
+    }
 
-        public static Type[] GetTypesDerivedFromType(Assembly assembly, Type type, string nameSpace = "")
+    public static Type[] GetTypesFromAssemblyPath(string assemblyPath, string nameSpace)
+    {
+        if (File.Exists(assemblyPath))
         {
-            var x = assembly.GetTypes();
-            var y = assembly.GetTypes().Where(t => t.Namespace != null && t.Namespace.Contains(nameSpace, StringComparison.Ordinal)).ToList();
-            var z = assembly.GetTypes()
-                .Where(t => t.Namespace != null && t.Namespace.Contains(nameSpace, StringComparison.Ordinal)).Where(t =>
-                    t.IsAssignableTo(type)).ToList();
+            Assembly asm = Assembly.LoadFrom(assemblyPath);
 
-            //var 
-
-            //var k = assembly.GetTypes()
-            //    .Where(t => t.Namespace != null && t.Namespace.Contains(nameSpace, StringComparison.Ordinal)).Where(t =>
-            //        t.IsAssignableTo(type)).ToList();
-
-
-            return
-                !string.IsNullOrEmpty(nameSpace)
-                    ? assembly.GetTypes()
-                        .Where(t => t.Namespace != null && t.Namespace.Contains(nameSpace, StringComparison.Ordinal))
-                        .Where(type.IsAssignableFrom)
-                        .ToArray()
-                    : assembly.GetTypes()
-                        .Where(type.IsAssignableFrom)
-                        .ToArray();
+            return GetTypesInNameSpace(asm, nameSpace);
         }
 
-        public static Type[] GetTypesFromAssemblyPath(string assemblyPath, string nameSpace)
+        return new Type[] { };
+    }
+
+    public static Type[] GetTypesDerivedFromType(string assemblyPath, Type type)
+    {
+        if (File.Exists(assemblyPath))
         {
-            if (File.Exists(assemblyPath))
-            {
-                Assembly asm = Assembly.LoadFrom(assemblyPath);
+            Assembly asm = Assembly.LoadFrom(assemblyPath);
 
-                return GetTypesInNameSpace(asm, nameSpace);
-            }
-
-            return new Type[] { };
+            return GetTypesDerivedFromType(asm, type);
         }
 
-        public static Type[] GetTypesDerivedFromType(string assemblyPath, Type type)
-        {
-            if (File.Exists(assemblyPath))
-            {
-                Assembly asm = Assembly.LoadFrom(assemblyPath);
-
-                return GetTypesDerivedFromType(asm, type);
-            }
-
-            return new Type[] { };
-        }
+        return new Type[] { };
     }
 }
