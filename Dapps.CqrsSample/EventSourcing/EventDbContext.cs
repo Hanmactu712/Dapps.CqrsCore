@@ -81,9 +81,9 @@ namespace Dapps.CqrsSample.EventSourcing
             _transaction = null;
         }
 
-        public async Task RollbackAsync()
+        public async Task RollbackAsync(CancellationToken cancellation = default)
         {
-            await _transaction.RollbackAsync();
+            await _transaction.RollbackAsync(cancellation);
             await _transaction.DisposeAsync();
             _transaction = null;
         }

@@ -43,15 +43,13 @@ namespace Dapps.CqrsSample.CommandHandlers
 
                 if (aggregate == null) return;
 
-                _commandStore.Box(aggregate.Id);
+                await _commandStore.BoxAsync(aggregate.Id, cancellationToken);
 
                 _logger.LogInformation("=========Boxing command Ok!");
 
-                EventRepository.Box(aggregate);
+                await EventRepository.BoxAsync(aggregate, cancellationToken);
 
                 _logger.LogInformation("=========BoxingArticle Ok!");
-
-                await Task.CompletedTask;
             }
             catch (Exception exception)
             {

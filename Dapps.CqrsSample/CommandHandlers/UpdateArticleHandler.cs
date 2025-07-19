@@ -40,7 +40,7 @@ namespace Dapps.CqrsSample.CommandHandlers
             //Console.WriteLine("Save to database");
             _logger.LogInformation("=========Handle command message");
 
-            var aggregate = Get<ArticleAggregate>(command.AggregateId);
+            var aggregate = await GetAsync<ArticleAggregate>(command.AggregateId, cancellationToken);
 
             if (aggregate != null)
             {
@@ -48,7 +48,7 @@ namespace Dapps.CqrsSample.CommandHandlers
 
                 _logger.LogInformation("=========Fire event to event handler");
 
-                await CommitAsync(aggregate);
+                await CommitAsync(aggregate, cancellationToken);
             }
 
             _logger.LogInformation("=========Article not existed");

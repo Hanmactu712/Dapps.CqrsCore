@@ -2,10 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Dapps.CqrsCore.Command;
-using Dapps.CqrsCore.Event;
 using Dapps.CqrsSample.CommandHandlers;
-using Dapps.CqrsSample.EventHandlers;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -13,23 +10,11 @@ namespace Dapps.CqrsSample
 {
     public class HostedService : IHostedService
     {
-        private readonly IServiceProvider _provider;
-        private ICqrsCommandHandler<CreateArticle> _cmdHandler;
-        private ICqrsEventHandler<ArticleCreated> _eventHandler;
         private readonly ICqrsCommandDispatcher _queue;
         private readonly ILogger<HostedService> _logger;
 
         public HostedService(IServiceProvider provider, ILogger<HostedService> logger, ICqrsCommandDispatcher queue)
         {
-            //_provider = provider;
-            //_cmdHandler = provider.GetRequiredService<ICqrsCommandHandler<CreateArticle>>();
-            //_eventHandler = provider.GetRequiredService<ICqrsEventHandler<ArticleCreated>>();
-
-            //var cmdHandler = provider.GetRequiredService<ICqrsCommandHandler<UpdateArticle>>();
-            //var eventHandler = provider.GetRequiredService<ICqrsEventHandler<ArticleUpdated>>();
-            //var x = provider.GetRequiredService<ICqrsCommandHandler<BoxingArticle>>();
-            //var y = provider.GetRequiredService<ICqrsCommandHandler<UnboxingArticle>>();
-
             _logger = logger;
             _queue = queue;
         }
@@ -57,26 +42,26 @@ namespace Dapps.CqrsSample
                 _queue.Send(command);
                 _logger.LogInformation($"Create command {command.Title} is sent");
 
-                //var updateTimes = random.Next(5, 100);
+                var updateTimes = random.Next(5, 10);
 
-                //if (i == 5)
-                //{
-                //    testBoxingId = aggregateId;
-                //}
+                if (i == 5)
+                {
+                    testBoxingId = aggregateId;
+                }
 
-                //for (int j = 0; j < updateTimes; j++)
-                //{
-                //    var updateCommand = new UpdateArticle($"Update title {i} {DateTime.Now}", $"Update summary {DateTime.Now}",
-                //        $"Update details {DateTime.Now}", Guid.NewGuid())
-                //    {
-                //        AggregateId = aggregateId,
-                //        UserId = userId
-                //    };
+                for (int j = 0; j < updateTimes; j++)
+                {
+                    var updateCommand = new UpdateArticle($"Update title {i} {DateTime.Now}", $"Update summary {DateTime.Now}",
+                        $"Update details {DateTime.Now}", Guid.NewGuid())
+                    {
+                        AggregateId = aggregateId,
+                        UserId = userId
+                    };
 
-                //    _logger.LogInformation($"Send update command {command.Title}");
-                //    _queue.Send(updateCommand);
-                //    _logger.LogInformation($"Update command {command.Title} is sent");
-                //}
+                    _logger.LogInformation($"Send update command {command.Title}");
+                    _queue.Send(updateCommand);
+                    _logger.LogInformation($"Update command {command.Title} is sent");
+                }
             }
 
             ////test boxing aggregate

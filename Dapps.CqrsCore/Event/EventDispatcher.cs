@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 using MediatR;
 
 namespace Dapps.CqrsCore.Event;
@@ -15,18 +16,14 @@ public class EventDispatcher : ICqrsEventDispatcher
         _mediator = mediator;
     }
 
-    /// <summary>
-    /// publish a event to queue
-    /// </summary>
-    /// <param name="ev"></param>
     public void Publish(ICqrsEvent ev)
     {
         var task = _mediator.Publish(ev);
         task.Wait(); //wait for the task to complete
     }
 
-    public async Task PublishAsync(ICqrsEvent ev)
+    public async Task PublishAsync(ICqrsEvent ev, CancellationToken cancellation = default)
     {
-        await _mediator.Publish(ev);
+        await _mediator.Publish(ev, cancellation);
     }
 }

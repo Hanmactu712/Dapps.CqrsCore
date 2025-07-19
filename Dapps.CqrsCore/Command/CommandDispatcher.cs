@@ -3,6 +3,7 @@ using MediatR;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Dapps.CqrsCore.Command;
@@ -43,14 +44,14 @@ public class CommandDispatcher : ICqrsCommandDispatcher
         }
     }
 
-    public async Task CancelAsync(Guid commandId)
+    public async Task CancelAsync(Guid commandId, CancellationToken cancellation = default)
     {
-        var serializedCommand = _store.Get(commandId);
+        var serializedCommand = await _store.GetAsync(commandId, cancellation);
         if (serializedCommand != null)
         {
             serializedCommand.SendCancelled = DateTimeOffset.UtcNow;
             serializedCommand.SendStatus = CommandStatus.Cancelled;
-            await _store.SaveAsync(serializedCommand, false);
+            await _store.SaveAsync(serializedCommand, false, cancellation);
         }
     }
 
@@ -69,14 +70,14 @@ public class CommandDispatcher : ICqrsCommandDispatcher
         }
     }
 
-    public async Task CompleteAsync(Guid commandId)
+    public async Task CompleteAsync(Guid commandId, CancellationToken cancellation = default)
     {
-        var serializedCommand = _store.Get(commandId);
+        var serializedCommand = await _store.GetAsync(commandId, cancellation);
         if (serializedCommand != null)
         {
             serializedCommand.SendCompleted = DateTimeOffset.UtcNow;
             serializedCommand.SendStatus = CommandStatus.Completed;
-            await _store.SaveAsync(serializedCommand, false);
+            await _store.SaveAsync(serializedCommand, false, cancellation);
         }
     }
 
@@ -97,7 +98,7 @@ public class CommandDispatcher : ICqrsCommandDispatcher
         _store.Save(serializedCommand, true);
     }
 
-    public async Task ScheduleAsync(ICqrsCommand command, DateTimeOffset at)
+    public async Task ScheduleAsync(ICqrsCommand command, DateTimeOffset at, CancellationToken cancellation = default)
     {
         var serializedCommand = _store.Serialize(command);
 
@@ -106,7 +107,7 @@ public class CommandDispatcher : ICqrsCommandDispatcher
 
         serializedCommand.SendScheduled = at;
         serializedCommand.SendStatus = CommandStatus.Scheduled;
-        await _store.SaveAsync(serializedCommand, true);
+        await _store.SaveAsync(serializedCommand, true, cancellation);
     }
 
     /// <summary>
@@ -137,7 +138,7 @@ public class CommandDispatcher : ICqrsCommandDispatcher
         }
     }
 
-    public async Task SendAsync(ICqrsCommand command)
+    public async Task SendAsync(ICqrsCommand command, CancellationToken cancellation = default)
     {
         SerializedCommand serialized = null;
 
@@ -147,7 +148,7 @@ public class CommandDispatcher : ICqrsCommandDispatcher
             serialized.SendStarted = DateTimeOffset.UtcNow;
         }
 
-        await ExecuteAsync(command);
+        await ExecuteAsync(command, cancellation);
 
         if (_saveAll)
         {
@@ -155,14 +156,14 @@ public class CommandDispatcher : ICqrsCommandDispatcher
             {
                 serialized.SendCompleted = DateTimeOffset.UtcNow;
                 serialized.SendStatus = CommandStatus.Completed;
-                _store.Save(serialized, true);
+                await _store.SaveAsync(serialized, true, cancellation);
             }
         }
     }
 
-    private async Task ExecuteAsync(ICqrsCommand command)
+    private async Task ExecuteAsync(ICqrsCommand command, CancellationToken cancellation = default)
     {
-        await _mediator.Send(command);
+        await _mediator.Send(command, cancellation);
     }
 
     /// <summary>
@@ -174,9 +175,9 @@ public class CommandDispatcher : ICqrsCommandDispatcher
         Execute(_store.Get(commandId));
     }
 
-    public async Task StartAsync(Guid commandId)
+    public async Task StartAsync(Guid commandId, CancellationToken cancellation = default)
     {
-        await ExecuteAsync(await _store.GetAsync(commandId));
+        await ExecuteAsync(await _store.GetAsync(commandId, cancellation), cancellation);
     }
 
     /// <summary>
@@ -200,20 +201,20 @@ public class CommandDispatcher : ICqrsCommandDispatcher
         _store.Save(serializedCommand, false);
     }
 
-    private async Task ExecuteAsync(SerializedCommand serializedCommand)
+    private async Task ExecuteAsync(SerializedCommand serializedCommand, CancellationToken cancellation = default)
     {
         if (serializedCommand == null)
             throw new ArgumentNullException(nameof(SerializedCommand));
 
         serializedCommand.SendStarted = DateTimeOffset.UtcNow;
         serializedCommand.SendStatus = CommandStatus.Started;
-        _store.Save(serializedCommand, false);
+        await _store.SaveAsync(serializedCommand, false, cancellation);
 
-        await ExecuteAsync(serializedCommand.Deserialize(_store.Serializer));
+        await ExecuteAsync(serializedCommand.Deserialize(_store.Serializer), cancellation);
 
         serializedCommand.SendCompleted = DateTimeOffset.UtcNow;
         serializedCommand.SendStatus = CommandStatus.Completed;
-        _store.Save(serializedCommand, false);
+        await _store.SaveAsync(serializedCommand, false, cancellation);
     }
 
     /// <summary>
@@ -229,11 +230,11 @@ public class CommandDispatcher : ICqrsCommandDispatcher
         }
     }
 
-    public async Task PingAsync()
+    public async Task PingAsync(CancellationToken cancellation = default)
     {
-        var commands = _store.GetExpired(DateTimeOffset.UtcNow);
+        var commands = await _store.GetExpiredAsync(DateTimeOffset.UtcNow, cancellation);
         foreach (var command in commands)
-            await ExecuteAsync(command);
+            await ExecuteAsync(command, cancellation);
 
     }
 }

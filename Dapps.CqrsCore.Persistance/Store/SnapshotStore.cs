@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Dapps.CqrsCore.Persistence.Exceptions;
 using Dapps.CqrsCore.Snapshots;
@@ -22,7 +23,7 @@ namespace Dapps.CqrsCore.Persistence.Store
             _offlineStorageFolder =
                 configuration?.LocalStorage ?? throw new ArgumentNullException(nameof(SnapshotOptions));
         }
-        
+
         /// <summary>
         /// Boxing to save data to offline store and remove it from event store
         /// </summary>
@@ -36,7 +37,7 @@ namespace Dapps.CqrsCore.Persistence.Store
 
             // Serialize the event stream and write it to an external file.
             var snapshot = Get(aggregate);
-            
+
             if (snapshot == null) return;
 
             var json = Get(aggregate).State;
@@ -114,7 +115,7 @@ namespace Dapps.CqrsCore.Persistence.Store
         /// Delete snapshot based on aggregate id
         /// </summary>
         /// <param name="aggregate"></param>
-        
+
         private void Delete(Guid aggregate)
         {
             var dbContext = GetDbContext();
@@ -129,33 +130,33 @@ namespace Dapps.CqrsCore.Persistence.Store
 
         #endregion
 
-        private async Task DeleteAsync(Guid aggregate)
+        private async Task DeleteAsync(Guid aggregate, CancellationToken cancellation = default)
         {
             var dbContext = GetDbContext();
 
-            var snapShot = await GetAsync(aggregate);
+            var snapShot = await GetAsync(aggregate, cancellation);
 
             if (snapShot == null) return;
 
             dbContext.Snapshots.Remove(snapShot);
-            await dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync(cancellation);
         }
 
-        public async Task<Snapshot> GetAsync(Guid id)
+        public async Task<Snapshot> GetAsync(Guid id, CancellationToken cancellation = default)
         {
             var dbContext = GetDbContext();
-            return await dbContext.Snapshots.AsNoTracking().SingleOrDefaultAsync(e => e.AggregateId.Equals(id));
+            return await dbContext.Snapshots.AsNoTracking().SingleOrDefaultAsync(e => e.AggregateId.Equals(id), cancellation);
         }
 
-        public async Task SaveAsync(Snapshot snapshot)
+        public async Task SaveAsync(Snapshot snapshot, CancellationToken cancellation = default)
         {
             var dbContext = GetDbContext();
             var existingSnapshot = await dbContext.Snapshots.AsNoTracking()
-                .SingleOrDefaultAsync(e => e.AggregateId.Equals(snapshot.AggregateId));
+                .SingleOrDefaultAsync(e => e.AggregateId.Equals(snapshot.AggregateId), cancellation);
 
             if (existingSnapshot == null)
             {
-                await dbContext.Snapshots.AddAsync(snapshot);
+                await dbContext.Snapshots.AddAsync(snapshot, cancellation);
             }
             else
             {
@@ -170,10 +171,10 @@ namespace Dapps.CqrsCore.Persistence.Store
                 dbContext.Entry(existingSnapshot).State = EntityState.Modified;
             }
 
-            await dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync(cancellation);
         }
-        
-        public async Task BoxAsync(Guid aggregate)
+
+        public async Task BoxAsync(Guid aggregate, CancellationToken cancellation = default)
         {
             // Create a new directory using the aggregate identifier as the folder name.
             var path = Path.Combine(_offlineStorageFolder, DefaultFolder, aggregate.ToString());
@@ -181,19 +182,19 @@ namespace Dapps.CqrsCore.Persistence.Store
                 Directory.CreateDirectory(path);
 
             // Serialize the event stream and write it to an external file.
-            var snapshot = await GetAsync(aggregate);
+            var snapshot = await GetAsync(aggregate, cancellation);
 
             if (snapshot == null) return;
 
-            var json = (await GetAsync(aggregate)).State;
+            var json = (await GetAsync(aggregate, cancellation)).State;
             var file = Path.Combine(path, "Snapshot.json");
-            await File.WriteAllTextAsync(file, json, Encoding.Unicode);
+            await File.WriteAllTextAsync(file, json, Encoding.Unicode, cancellation);
 
             // Delete the aggregate and the events from the online logs.
-            await DeleteAsync(aggregate);
+            await DeleteAsync(aggregate, cancellation);
         }
 
-        public async Task<Snapshot> UnboxAsync(Guid aggregate)
+        public async Task<Snapshot> UnboxAsync(Guid aggregate, CancellationToken cancellation = default)
         {
             // The snapshot must exist!
             var file = Path.Combine(_offlineStorageFolder, DefaultFolder, aggregate.ToString(), "Snapshot.json");
@@ -205,7 +206,7 @@ namespace Dapps.CqrsCore.Persistence.Store
             {
                 AggregateId = aggregate,
                 Version = 1,
-                State = await File.ReadAllTextAsync(file, Encoding.Unicode)
+                State = await File.ReadAllTextAsync(file, Encoding.Unicode, cancellation)
             };
         }
 

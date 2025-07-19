@@ -3,6 +3,7 @@ using Dapps.CqrsCore.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Dapps.CqrsCore.Event;
@@ -27,9 +28,9 @@ public class EventRepository : ICqrsEventRepository
         return Rehydrate<T>(id);
     }
 
-    public async Task<T> GetAsync<T>(Guid id) where T : CqrsAggregateRoot
+    public async Task<T> GetAsync<T>(Guid id, CancellationToken cancellation = default) where T : CqrsAggregateRoot
     {
-        return await RehydrateAsync<T>(id);
+        return await RehydrateAsync<T>(id, cancellation);
     }
 
     /// <summary>
@@ -51,16 +52,16 @@ public class EventRepository : ICqrsEventRepository
         return events;
     }
 
-    public async Task<IList<ICqrsEvent>> SaveAsync<T>(T aggregate, int? version = null) where T : CqrsAggregateRoot
+    public async Task<IList<ICqrsEvent>> SaveAsync<T>(T aggregate, int? version = null, CancellationToken cancellation = default) where T : CqrsAggregateRoot
     {
-        if (version != null && (await _store.ExistsAsync(aggregate.Id, version.Value)))
+        if (version != null && (await _store.ExistsAsync(aggregate.Id, version.Value, cancellation)))
             throw new ConcurrencyException(aggregate.Id);
 
         // Get the list of events that are not yet saved. 
         var events = aggregate.FlushUncommittedChanges();
 
         // Save the uncommitted changes.
-        await _store.SaveAsync(aggregate, events);
+        await _store.SaveAsync(aggregate, events, cancellation);
 
         // The event repository is not responsible for publishing these events. Instead they are returned to the 
         // caller for that purpose.
@@ -85,10 +86,10 @@ public class EventRepository : ICqrsEventRepository
         return aggregate;
     }
 
-    private async Task<T> RehydrateAsync<T>(Guid id) where T : CqrsAggregateRoot
+    private async Task<T> RehydrateAsync<T>(Guid id, CancellationToken cancellation = default) where T : CqrsAggregateRoot
     {
         // Get all the events for the id.
-        var events = await _store.GetAsync(id, -1);
+        var events = await _store.GetAsync(id, -1, cancellation);
 
         // Disallow empty event streams.
         if (!events.Any())
@@ -116,7 +117,7 @@ public class EventRepository : ICqrsEventRepository
         throw new NotImplementedException();
     }
 
-    public Task BoxAsync<T>(T aggregate) where T : CqrsAggregateRoot
+    public Task BoxAsync<T>(T aggregate, CancellationToken cancellation = default) where T : CqrsAggregateRoot
     {
         throw new NotImplementedException();
     }
@@ -135,7 +136,7 @@ public class EventRepository : ICqrsEventRepository
         throw new NotImplementedException();
     }
 
-    public Task<T> UnboxAsync<T>(Guid aggregate) where T : CqrsAggregateRoot
+    public Task<T> UnboxAsync<T>(Guid aggregate, CancellationToken cancellation = default) where T : CqrsAggregateRoot
     {
         throw new NotImplementedException();
     }

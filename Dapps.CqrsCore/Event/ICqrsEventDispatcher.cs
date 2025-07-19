@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 
 namespace Dapps.CqrsCore.Event;
 
@@ -18,5 +19,5 @@ public interface ICqrsEventDispatcher
     /// </summary>
     /// <param name="ev"></param>
     /// <returns></returns>
-    Task PublishAsync(ICqrsEvent ev);
+    Task PublishAsync(ICqrsEvent ev, CancellationToken cancellation = default);
 }

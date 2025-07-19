@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Dapps.CqrsCore.Event;
@@ -51,7 +50,7 @@ public class ArticleCreatedHandler : ICqrsEventHandler<ArticleCreated>
             Details = message.Details,
         };
 
-        _repository.Add(article);
+        await _repository.AddAsync(article, cancellationToken);
 
         _logger.LogInformation($"================Handle event {typeof(ArticleCreated)} - {message.Title} is handled");
 

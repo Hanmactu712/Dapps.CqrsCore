@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Dapps.CqrsCore.Aggregate;
 using Dapps.CqrsCore.Event;
@@ -160,31 +161,31 @@ namespace Dapps.CqrsCore.Persistence.Store
                 });
         }
 
-        public async Task<bool> ExistsAsync(Guid aggregateId)
+        public async Task<bool> ExistsAsync(Guid aggregateId, CancellationToken cancellation = default)
         {
-            return await GetDbContext().Events.AsNoTracking().AnyAsync(x => x.AggregateId.Equals(aggregateId));
+            return await GetDbContext().Events.AsNoTracking().AnyAsync(x => x.AggregateId.Equals(aggregateId), cancellation);
         }
 
-        public async Task<bool> ExistsAsync(Guid aggregateId, int version)
+        public async Task<bool> ExistsAsync(Guid aggregateId, int version, CancellationToken cancellation = default)
         {
             return await GetDbContext().Events.AsNoTracking()
-                .AnyAsync(x => x.AggregateId.Equals(aggregateId) && x.Version.Equals(version));
+                .AnyAsync(x => x.AggregateId.Equals(aggregateId) && x.Version.Equals(version), cancellation);
         }
 
-        public async Task<IEnumerable<ICqrsEvent>> GetAsync(Guid aggregateId, int fromVersion)
+        public async Task<IEnumerable<ICqrsEvent>> GetAsync(Guid aggregateId, int fromVersion, CancellationToken cancellation = default)
         {
             return await GetDbContext().Events.AsNoTracking()
                 .Where(x => x.AggregateId.Equals(aggregateId) && x.Version >= fromVersion)
-                .Select(x => x.Deserialize(Serializer)).ToListAsync();
+                .Select(x => x.Deserialize(Serializer)).ToListAsync(cancellation);
         }
 
-        public async Task<IEnumerable<Guid>> GetExpiredAsync(DateTimeOffset at)
+        public async Task<IEnumerable<Guid>> GetExpiredAsync(DateTimeOffset at, CancellationToken cancellation = default)
         {
             return await GetDbContext().Aggregates.AsNoTracking().Where(x => x.Expires != null && x.Expires <= at).Select(x => x.AggregateId)
-                .ToListAsync();
+                .ToListAsync(cancellation);
         }
 
-        public async Task SaveAsync(CqrsAggregateRoot aggregate, IEnumerable<ICqrsEvent> events)
+        public async Task SaveAsync(CqrsAggregateRoot aggregate, IEnumerable<ICqrsEvent> events, CancellationToken cancellation = default)
         {
             var dbContext = GetDbContext();
 
@@ -195,26 +196,26 @@ namespace Dapps.CqrsCore.Persistence.Store
                 listEvents.Add(ev.Serialize(Serializer, aggregate.Id, ev.Version));
             }
 
-            await dbContext.BeginTransactionAsync();
+            await dbContext.BeginTransactionAsync(cancellation);
 
             EnsureAggregateExist(aggregate.Id, aggregate.GetType().Name.Replace("Aggregate", string.Empty),
                 aggregate.GetType().FullName);
 
             foreach (var serializedEvent in listEvents)
             {
-                await dbContext.Events.AddAsync(serializedEvent);
+                await dbContext.Events.AddAsync(serializedEvent, cancellation);
             }
 
-            dbContext.SaveChanges();
+            await dbContext.SaveChangesAsync(cancellation);
 
-            await dbContext.CommitAsync();
+            await dbContext.CommitAsync(cancellation);
         }
 
-        public async Task BoxAsync(Guid aggregateId)
+        public async Task BoxAsync(Guid aggregateId, CancellationToken cancellation = default)
         {
             var dbContext = GetDbContext();
             // Serialize the event stream and write it to an external file.
-            var events = await GetAsync(aggregateId, -1);
+            var events = await GetAsync(aggregateId, -1, cancellation);
             foreach (var ev in events)
             {
                 // Create a new directory using the aggregate identifier as the folder name.
@@ -226,11 +227,11 @@ namespace Dapps.CqrsCore.Persistence.Store
                 var serializedEvent = ev.Serialize(Serializer, aggregateId, ev.Version);
                 var data = Serializer.Serialize(serializedEvent);
                 var file = Path.Combine(path, $"{ev.Version}.json");
-                File.WriteAllText(file, data, Encoding.Unicode);
+                await File.WriteAllTextAsync(file, data, Encoding.Unicode, cancellation);
 
                 // Delete the aggregate and the events from the online logs.
-                var existingEvent = dbContext.Events.SingleOrDefault(e =>
-                    e.AggregateId.Equals(ev.AggregateId) && e.Version.Equals(ev.Version));
+                var existingEvent = await dbContext.Events.SingleOrDefaultAsync(e =>
+                    e.AggregateId.Equals(ev.AggregateId) && e.Version.Equals(ev.Version), cancellation);
                 if (existingEvent != null)
                 {
                     dbContext.Events.Remove(existingEvent);
@@ -239,15 +240,15 @@ namespace Dapps.CqrsCore.Persistence.Store
 
             //remove aggregate
             var existingAggregate = await dbContext.Aggregates.AsNoTracking()
-                .SingleOrDefaultAsync(e => e.AggregateId.Equals(aggregateId));
+                .SingleOrDefaultAsync(e => e.AggregateId.Equals(aggregateId), cancellation);
 
             if (existingAggregate != null)
                 dbContext.Aggregates.Remove(existingAggregate);
 
-            dbContext.SaveChanges();
+            await dbContext.SaveChangesAsync(cancellation);
         }
 
-        public async Task<IEnumerable<SerializedEvent>> UnBoxAsync(Guid aggregate)
+        public async Task<IEnumerable<SerializedEvent>> UnBoxAsync(Guid aggregate, CancellationToken cancellation = default)
         {
             var filePath = Path.Combine(_offlineStorageFolder, DefaultFolder, aggregate.ToString());
 
@@ -264,7 +265,7 @@ namespace Dapps.CqrsCore.Persistence.Store
             {
                 if (!File.Exists(file)) continue;
 
-                var eventJson = await File.ReadAllTextAsync(file, Encoding.Unicode);
+                var eventJson = await File.ReadAllTextAsync(file, Encoding.Unicode, cancellation);
 
                 var serializedEvent = Serializer.Deserialize<SerializedEvent>(eventJson, typeof(SerializedEvent));
 

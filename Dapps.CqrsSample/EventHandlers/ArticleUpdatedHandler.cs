@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Dapps.CqrsCore.Event;
 using Dapps.CqrsCore.Persistence.Read;
-using Dapps.CqrsCore.Utilities;
 using Dapps.CqrsSample.Data;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -52,7 +50,7 @@ namespace Dapps.CqrsSample.EventHandlers
             entity.Summary = message.Summary;
             entity.Details = message.Details;
 
-            _repository.Update(entity);
+            await _repository.UpdateAsync(entity, cancellationToken);
 
             _logger.LogInformation(
                 $"================Handle event {typeof(ArticleUpdated)} - {message.Title} is handled");

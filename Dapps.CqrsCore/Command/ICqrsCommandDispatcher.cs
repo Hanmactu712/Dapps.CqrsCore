@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Dapps.CqrsCore.Command;
@@ -18,7 +19,7 @@ public interface ICqrsCommandDispatcher
     /// Send a command asynchronously
     /// </summary>
     /// <param name="command"></param>
-    Task SendAsync(ICqrsCommand command);
+    Task SendAsync(ICqrsCommand command, CancellationToken cancellation = default);
 
     /// <summary>
     /// Send a command as assynchronous
@@ -32,7 +33,7 @@ public interface ICqrsCommandDispatcher
     /// </summary>
     /// <param name="command"></param>
     /// <param name="at"></param>
-    Task ScheduleAsync(ICqrsCommand command, DateTimeOffset at);
+    Task ScheduleAsync(ICqrsCommand command, DateTimeOffset at, CancellationToken cancellation = default);
 
     /// <summary>
     /// Start a scheduled command
@@ -44,7 +45,7 @@ public interface ICqrsCommandDispatcher
     /// Start a scheduled command asynchronously
     /// </summary>
     /// <param name="commandID"></param>
-    Task StartAsync(Guid commandID);
+    Task StartAsync(Guid commandID, CancellationToken cancellation = default);
 
     /// <summary>
     /// Cancel a scheduled command
@@ -56,7 +57,7 @@ public interface ICqrsCommandDispatcher
     /// Cancel a scheduled command asynchronously
     /// </summary>
     /// <param name="commandID"></param>
-    Task CancelAsync(Guid commandID);
+    Task CancelAsync(Guid commandID, CancellationToken cancellation = default);
 
     /// <summary>
     /// Complete a scheduled command
@@ -68,7 +69,7 @@ public interface ICqrsCommandDispatcher
     /// Complete a scheduled command asynchronously
     /// </summary>
     /// <param name="commandID"></param>
-    Task CompleteAsync(Guid commandID);
+    Task CompleteAsync(Guid commandID, CancellationToken cancellation = default);
 
     /// <summary>
     /// Ping to the command store to awake all scheduled command haven't been handled.
@@ -79,5 +80,5 @@ public interface ICqrsCommandDispatcher
     /// Ping to the command store to awake all scheduled command haven't been handled asynchronously.
     /// </summary>
     /// <param name="commandID"></param>
-    Task PingAsync();
+    Task PingAsync(CancellationToken cancellation = default);
 }

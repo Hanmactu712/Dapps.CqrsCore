@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Dapps.CqrsCore.Snapshots;
@@ -18,7 +19,7 @@ public interface ISnapshotStore
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
-    Task<Snapshot> GetAsync(Guid id);
+    Task<Snapshot> GetAsync(Guid id, CancellationToken cancellation = default);
 
     /// <summary>
     /// Saves a snapshot to the store.
@@ -30,7 +31,7 @@ public interface ISnapshotStore
     /// </summary>
     /// <param name="snapshot"></param>
     /// <returns></returns>
-    Task SaveAsync(Snapshot snapshot);
+    Task SaveAsync(Snapshot snapshot, CancellationToken cancellation = default);
 
     /// <summary>
     /// Copies a snapshot to offline storage and removes it from online logs.
@@ -42,7 +43,7 @@ public interface ISnapshotStore
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
-    Task BoxAsync(Guid id);
+    Task BoxAsync(Guid id, CancellationToken cancellation = default);
 
     /// <summary>
     /// Retrieves an aggregate from offline storage and returns only its most recent state.
@@ -54,5 +55,5 @@ public interface ISnapshotStore
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
-    Task<Snapshot> UnboxAsync(Guid id);
+    Task<Snapshot> UnboxAsync(Guid id, CancellationToken cancellation = default);
 }

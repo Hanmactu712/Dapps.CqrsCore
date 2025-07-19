@@ -6,7 +6,6 @@ using Dapps.CqrsCore.Event;
 using Dapps.CqrsCore.Snapshots;
 using Dapps.CqrsSample.Aggregates;
 using Microsoft.Extensions.Logging;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace Dapps.CqrsSample.CommandHandlers
 {
@@ -43,7 +42,7 @@ namespace Dapps.CqrsSample.CommandHandlers
             aggregate.CreateArticle(command.Title, command.Summary, command.Details, command.Id);
             _logger.LogInformation("=========Fire event to event handler");
 
-            await CommitAsync(aggregate);
+            await CommitAsync(aggregate, cancellationToken);
         }
     }
 }

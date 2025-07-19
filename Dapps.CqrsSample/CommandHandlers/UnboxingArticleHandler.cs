@@ -34,11 +34,11 @@ namespace Dapps.CqrsSample.CommandHandlers
             //Console.WriteLine("Save to database");
             _logger.LogInformation("=========Handle UnboxingArticle");
 
-            var aggregate = EventRepository.Unbox<ArticleAggregate>(command.AggregateId);
+            var aggregate = await EventRepository.UnboxAsync<ArticleAggregate>(command.AggregateId, cancellationToken);
             
             _logger.LogInformation($"========= Title = {aggregate.Id}");
 
-            await CommitAsync(aggregate);
+            await CommitAsync(aggregate, cancellationToken);
 
             _logger.LogInformation("=========Fire event to UnboxingArticle event handler");
         }

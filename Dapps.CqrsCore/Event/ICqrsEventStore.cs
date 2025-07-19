@@ -2,6 +2,7 @@
 using Dapps.CqrsCore.Utilities;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Dapps.CqrsCore.Event;
@@ -24,7 +25,7 @@ public interface ICqrsEventStore
     /// <summary>
     /// Returns true if an aggregate exists.
     /// </summary>
-    Task<bool> ExistsAsync(Guid aggregateId);
+    Task<bool> ExistsAsync(Guid aggregateId, CancellationToken cancellation = default);
 
     /// <summary>
     /// Returns true if an aggregate with a specific version exists.
@@ -34,7 +35,7 @@ public interface ICqrsEventStore
     /// <summary>
     /// Returns true if an aggregate with a specific version exists.
     /// </summary>
-    Task<bool> ExistsAsync(Guid aggregateId, int version);
+    Task<bool> ExistsAsync(Guid aggregateId, int version, CancellationToken cancellation = default);
 
     /// <summary>
     /// Gets events for an aggregate starting at a specific version. To get all events use version = -1.
@@ -44,7 +45,7 @@ public interface ICqrsEventStore
     /// <summary>
     /// Gets events for an aggregate starting at a specific version. To get all events use version = -1.
     /// </summary>
-    Task<IEnumerable<ICqrsEvent>> GetAsync(Guid aggregateId, int version);
+    Task<IEnumerable<ICqrsEvent>> GetAsync(Guid aggregateId, int version, CancellationToken cancellation = default);
 
     /// <summary>
     /// Gets all aggregates that are scheduled to expire at (or before) a specific time on a specific date.
@@ -54,7 +55,7 @@ public interface ICqrsEventStore
     /// <summary>
     /// Gets all aggregates that are scheduled to expire at (or before) a specific time on a specific date.
     /// </summary>
-    Task<IEnumerable<Guid>> GetExpiredAsync(DateTimeOffset at);
+    Task<IEnumerable<Guid>> GetExpiredAsync(DateTimeOffset at, CancellationToken cancellation = default);
 
     /// <summary>
     /// Save events.
@@ -64,7 +65,7 @@ public interface ICqrsEventStore
     /// <summary>
     /// Save events.
     /// </summary>
-    Task SaveAsync(CqrsAggregateRoot aggregate, IEnumerable<ICqrsEvent> events);
+    Task SaveAsync(CqrsAggregateRoot aggregate, IEnumerable<ICqrsEvent> events, CancellationToken cancellation = default);
 
     /// <summary>
     /// Copies an aggregate to offline storage and removes it from online logs.
@@ -90,7 +91,7 @@ public interface ICqrsEventStore
     /// test-cases to confirm system functions are operating correctly; this data is temporary by definition, and 
     /// we do not want to permanently store the event streams for test aggregates.
     /// </remarks>
-    Task BoxAsync(Guid aggregateId);
+    Task BoxAsync(Guid aggregateId, CancellationToken cancellation = default);
 
     /// <summary>
     /// Retrieve event from file and insert back to event store
@@ -104,5 +105,5 @@ public interface ICqrsEventStore
     /// </summary>
     /// <param name="aggregateId"></param>
     /// <returns></returns>
-    Task<IEnumerable<SerializedEvent>> UnBoxAsync(Guid aggregateId);
+    Task<IEnumerable<SerializedEvent>> UnBoxAsync(Guid aggregateId, CancellationToken cancellation = default);
 }

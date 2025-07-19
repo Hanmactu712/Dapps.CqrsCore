@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using Dapps.CqrsCore.Exceptions;
 using System.Threading.Tasks;
+using System.Threading;
 
 
 namespace Dapps.CqrsCore.Snapshots;
@@ -100,9 +101,9 @@ public class SnapshotRepository : ICqrsEventRepository
         return snapshot.Version;
     }
     
-    private async Task<int> RestoreAggregateFromSnapshotAsync<T>(Guid id, T aggregate) where T : CqrsAggregateRoot
+    private async Task<int> RestoreAggregateFromSnapshotAsync<T>(Guid id, T aggregate, CancellationToken cancellation = default) where T : CqrsAggregateRoot
     {
-        var snapshot = await _snapshotStore.GetAsync(id);
+        var snapshot = await _snapshotStore.GetAsync(id, cancellation);
 
         if (snapshot == null)
             return -1;
@@ -135,7 +136,7 @@ public class SnapshotRepository : ICqrsEventRepository
         _snapshotStore.Save(snapshot);
     }
 
-    private async Task TakeSnapshotAsync(CqrsAggregateRoot aggregate, bool force)
+    private async Task TakeSnapshotAsync(CqrsAggregateRoot aggregate, bool force, CancellationToken cancellation = default)
     {
         if (!force && !_snapshotStrategy.ShouldTakeSnapShot(aggregate))
             return;
@@ -150,7 +151,7 @@ public class SnapshotRepository : ICqrsEventRepository
 
         snapshot.Version = aggregate.Version + aggregate.GetUncommittedChanges().Count;
 
-        await _snapshotStore.SaveAsync(snapshot);
+        await _snapshotStore.SaveAsync(snapshot, cancellation);
     }
 
     #region Methods (boxing and unboxing)
@@ -275,7 +276,7 @@ public class SnapshotRepository : ICqrsEventRepository
     /// <typeparam name="T"></typeparam>
     /// <param name="aggregateId"></param>
     /// <returns></returns>
-    public async Task<T> GetAsync<T>(Guid aggregateId) where T : CqrsAggregateRoot
+    public async Task<T> GetAsync<T>(Guid aggregateId, CancellationToken cancellation = default) where T : CqrsAggregateRoot
     {
         // Check the cache to see if the aggregate is already in memory.
         var snapshot = _cache.Get(aggregateId);
@@ -284,14 +285,14 @@ public class SnapshotRepository : ICqrsEventRepository
 
         // If it is not in the cache then load the aggregate from the most recent snapshot.
         var aggregate = AggregateFactory<T>.CreateAggregate();
-        var snapshotVersion = await RestoreAggregateFromSnapshotAsync(aggregateId, aggregate);
+        var snapshotVersion = await RestoreAggregateFromSnapshotAsync(aggregateId, aggregate, cancellation);
 
         // If there is no snapshot then load the aggregate directly from the event store.
         if (snapshotVersion == -1)
-            return await _eventRepository.GetAsync<T>(aggregateId);
+            return await _eventRepository.GetAsync<T>(aggregateId, cancellation);
 
         // Otherwise load the aggregate from the events that occurred after the snapshot was taken.
-        var events = (await _eventStore.GetAsync(aggregateId, snapshotVersion))
+        var events = (await _eventStore.GetAsync(aggregateId, snapshotVersion, cancellation))
             .Where(desc => desc.Version > snapshotVersion);
 
         aggregate.ReHydrate(events);
@@ -306,16 +307,16 @@ public class SnapshotRepository : ICqrsEventRepository
     /// <param name="aggregate"></param>
     /// <param name="version"></param>
     /// <returns></returns>
-    public async Task<IList<ICqrsEvent>> SaveAsync<T>(T aggregate, int? version = null) where T : CqrsAggregateRoot
+    public async Task<IList<ICqrsEvent>> SaveAsync<T>(T aggregate, int? version = null, CancellationToken cancellation = default) where T : CqrsAggregateRoot
     {
         // Cache the aggregate for 5 minutes.
         _cache.Add(aggregate.Id, aggregate, 5 * 60, true);
 
         // Take a snapshot if needed.
-        await TakeSnapshotAsync(aggregate, false);
+        await TakeSnapshotAsync(aggregate, false, cancellation);
 
         // Return the stream of saved events to the caller so they can be published.
-        return await _eventRepository.SaveAsync(aggregate, version);
+        return await _eventRepository.SaveAsync(aggregate, version, cancellation);
     }
 
     /// <summary>
@@ -324,12 +325,12 @@ public class SnapshotRepository : ICqrsEventRepository
     /// <typeparam name="T"></typeparam>
     /// <param name="aggregate"></param>
     /// <returns></returns>
-    public async Task BoxAsync<T>(T aggregate) where T : CqrsAggregateRoot
+    public async Task BoxAsync<T>(T aggregate, CancellationToken cancellation = default) where T : CqrsAggregateRoot
     {
-        await TakeSnapshotAsync(aggregate, true);
+        await TakeSnapshotAsync(aggregate, true, cancellation);
 
-        _snapshotStore.Box(aggregate.Id);
-        await _eventStore.BoxAsync(aggregate.Id);
+        await _snapshotStore.BoxAsync(aggregate.Id, cancellation);
+        await _eventStore.BoxAsync(aggregate.Id, cancellation);
 
         _cache.Remove(aggregate.Id);
     }
@@ -340,14 +341,14 @@ public class SnapshotRepository : ICqrsEventRepository
     /// <typeparam name="T"></typeparam>
     /// <param name="aggregateId"></param>
     /// <returns></returns>
-    public async Task<T> UnboxAsync<T>(Guid aggregateId) where T : CqrsAggregateRoot
+    public async Task<T> UnboxAsync<T>(Guid aggregateId, CancellationToken cancellation = default) where T : CqrsAggregateRoot
     {
         //var snapshot = _snapshotStore.Unbox(aggregateId);
         var aggregate = AggregateFactory<T>.CreateAggregate();
         aggregate.Id = aggregateId;
         //aggregate.Version = 1;
 
-        var unBoxEvents = await _eventStore.UnBoxAsync(aggregateId);
+        var unBoxEvents = await _eventStore.UnBoxAsync(aggregateId, cancellation);
         var events = unBoxEvents.ToList();
 
         if (!events.Any()) return aggregate;
