@@ -5,16 +5,13 @@
     <Authors>Dang Dinh Duc</Authors>
     <Description>Core library for persistence in cqrs + es pattern in .net 5
 Provide base class, interface &amp; default persistence stores</Description>
-    <PackageReleaseNotes>- Add Async function for core features
-- Using MediatR for dispatching commands &amp; events in memory.
-- Rename CommandQueue to CommandDispatcher (including interfaces)
-- Rename EventQueue to EventDispatcher (including interfaces)
-- migrate to .NET 9.0</PackageReleaseNotes>
+    <PackageReleaseNotes>- Bug fixing
+- Update Async function</PackageReleaseNotes>
     <PackageProjectUrl>https://github.com/Hanmactu712/Dapps.CqrsCore</PackageProjectUrl>
-    <Version>1.2.0.0</Version>
+    <Version>1.2.1.0</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <RepositoryUrl>https://github.com/Hanmactu712/Dapps.CqrsCore</RepositoryUrl>
-    <PackageTags>v1.2.0.0</PackageTags>
+    <PackageTags>v1.2.1.0</PackageTags>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>Dapps.CqrsCore.Persistence.snk</AssemblyOriginatorKeyFile>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>

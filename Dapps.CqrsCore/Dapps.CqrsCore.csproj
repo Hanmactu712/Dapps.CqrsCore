@@ -10,15 +10,12 @@ Provide base class, interface &amp; default implementations for:
     <Authors>Dang Dinh Duc</Authors>
     <Company>Dang Dinh Duc</Company>
     <PackageProjectUrl>https://github.com/Hanmactu712/Dapps.CqrsCore</PackageProjectUrl>
-    <Version>1.2.0.0</Version>
+    <Version>1.2.1.0</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <RepositoryUrl>https://github.com/Hanmactu712/Dapps.CqrsCore</RepositoryUrl>
-    <PackageTags>v1.2.0.0</PackageTags>
-    <PackageReleaseNotes>- Add Async function for core features
-- Using MediatR for dispatching commands &amp; events in memory.
-- Rename CommandQueue to CommandDispatcher (including interfaces)
-- Rename EventQueue to EventDispatcher (including interfaces)
-- migrate to .NET 9.0</PackageReleaseNotes>
+    <PackageTags>v1.2.1.0</PackageTags>
+    <PackageReleaseNotes>- Bug fixing
+- Update Async function</PackageReleaseNotes>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>Dapps.CqrsCore.snk</AssemblyOriginatorKeyFile>
     <Copyright>@ducdang</Copyright>

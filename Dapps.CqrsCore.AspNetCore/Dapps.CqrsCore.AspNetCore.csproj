@@ -7,13 +7,10 @@
 Add CQRS builder for CQRS Service which be using by application.</Description>
     <PackageProjectUrl>https://github.com/Hanmactu712/Dapps.CqrsCore</PackageProjectUrl>
     <RepositoryUrl>https://github.com/Hanmactu712/Dapps.CqrsCore</RepositoryUrl>
-    <PackageTags>v1.2.0.0</PackageTags>
-    <PackageReleaseNotes>- Add Async function for core features
-- Using MediatR for dispatching commands &amp; events in memory.
-- Rename CommandQueue to CommandDispatcher (including interfaces)
-- Rename EventQueue to EventDispatcher (including interfaces)
-- migrate to .NET 9.0</PackageReleaseNotes>
-    <Version>1.2.0.0</Version>
+    <PackageTags>v1.2.1.0</PackageTags>
+    <PackageReleaseNotes>- Bug fixing
+- Update Async function</PackageReleaseNotes>
+    <Version>1.2.1.0</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>Dapps.CqrsCore.AspNetCore.snk</AssemblyOriginatorKeyFile>
