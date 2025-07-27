@@ -9,7 +9,7 @@ on:
       - "v*.*.*" # Triggers on tags like v1.0.0, v2.1.5, etc.
 
 env:
-  NET_VERSION: 9.0
+  NET_VERSION: 9.0.x
   PROJECT_PATH: "./Dapps.CqrsCore/Dapps.CqrsCore.csproj"
 
 jobs:
