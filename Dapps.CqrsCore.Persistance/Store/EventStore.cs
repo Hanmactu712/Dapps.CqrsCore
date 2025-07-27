@@ -16,24 +16,26 @@ namespace Dapps.CqrsCore.Persistence.Store
     /// <summary>
     /// default event store
     /// </summary>
-    public class EventStore : BaseStore<IEventDbContext>, ICqrsEventStore
+    public class EventStore : ICqrsEventStore
     {
         private readonly string _offlineStorageFolder;
         private const string DefaultFolder = "Events";
+        private readonly IEventDbContext _dbContext;
 
-        public EventStore(ISerializer serializer, IServiceProvider service, EventStoreOptions options) : base(service)
+        public EventStore(ISerializer serializer, IServiceProvider service, EventStoreOptions options, IEventDbContext dbContext)
         {
             Serializer = serializer ?? throw new ArgumentNullException(nameof(ISerializer));
 
             _offlineStorageFolder = options?.EventLocalStorage ??
                                     Path.Combine(AppDomain.CurrentDomain.BaseDirectory);
+            _dbContext = dbContext;
         }
 
         public ISerializer Serializer { get; }
 
         public void Box(Guid aggregateId)
         {
-            var dbContext = GetDbContext();
+            var dbContext = _dbContext;
             // Serialize the event stream and write it to an external file.
             var events = Get(aggregateId, -1);
             foreach (var ev in events)
@@ -100,31 +102,31 @@ namespace Dapps.CqrsCore.Persistence.Store
 
         public bool Exists(Guid aggregateId)
         {
-            return GetDbContext().Events.AsNoTracking().Any(x => x.AggregateId.Equals(aggregateId));
+            return _dbContext.Events.AsNoTracking().Any(x => x.AggregateId.Equals(aggregateId));
         }
 
         public bool Exists(Guid aggregateId, int version)
         {
-            return GetDbContext().Events.AsNoTracking()
+            return _dbContext.Events.AsNoTracking()
                 .Any(x => x.AggregateId.Equals(aggregateId) && x.Version.Equals(version));
         }
 
         public IEnumerable<ICqrsEvent> Get(Guid aggregateId, int fromVersion)
         {
-            return GetDbContext().Events.AsNoTracking()
+            return _dbContext.Events.AsNoTracking()
                 .Where(x => x.AggregateId.Equals(aggregateId) && x.Version >= fromVersion)
                 .Select(x => x.Deserialize(Serializer)).ToList().AsEnumerable();
         }
 
         public IEnumerable<Guid> GetExpired(DateTimeOffset at)
         {
-            return GetDbContext().Aggregates.AsNoTracking().Where(x => x.Expires != null && x.Expires <= at).Select(x => x.AggregateId)
+            return _dbContext.Aggregates.AsNoTracking().Where(x => x.Expires != null && x.Expires <= at).Select(x => x.AggregateId)
                 .ToList().AsEnumerable();
         }
 
         public void Save(CqrsAggregateRoot aggregate, IEnumerable<ICqrsEvent> events)
         {
-            var dbContext = GetDbContext();
+            var dbContext = _dbContext;
 
             var listEvents = new List<SerializedEvent>();
 
@@ -150,7 +152,7 @@ namespace Dapps.CqrsCore.Persistence.Store
 
         private void EnsureAggregateExist(Guid aggregateId, string className, string classType)
         {
-            var dbContext = GetDbContext();
+            var dbContext = _dbContext;
             if (!dbContext.Aggregates.AsNoTracking().Any(x => x.AggregateId.Equals(aggregateId)))
                 dbContext.Aggregates.Add(new SerializedAggregate()
                 {
@@ -163,31 +165,31 @@ namespace Dapps.CqrsCore.Persistence.Store
 
         public async Task<bool> ExistsAsync(Guid aggregateId, CancellationToken cancellation = default)
         {
-            return await GetDbContext().Events.AsNoTracking().AnyAsync(x => x.AggregateId.Equals(aggregateId), cancellation);
+            return await _dbContext.Events.AsNoTracking().AnyAsync(x => x.AggregateId.Equals(aggregateId), cancellation);
         }
 
         public async Task<bool> ExistsAsync(Guid aggregateId, int version, CancellationToken cancellation = default)
         {
-            return await GetDbContext().Events.AsNoTracking()
+            return await _dbContext.Events.AsNoTracking()
                 .AnyAsync(x => x.AggregateId.Equals(aggregateId) && x.Version.Equals(version), cancellation);
         }
 
         public async Task<IEnumerable<ICqrsEvent>> GetAsync(Guid aggregateId, int fromVersion, CancellationToken cancellation = default)
         {
-            return await GetDbContext().Events.AsNoTracking()
+            return await _dbContext.Events.AsNoTracking()
                 .Where(x => x.AggregateId.Equals(aggregateId) && x.Version >= fromVersion)
                 .Select(x => x.Deserialize(Serializer)).ToListAsync(cancellation);
         }
 
         public async Task<IEnumerable<Guid>> GetExpiredAsync(DateTimeOffset at, CancellationToken cancellation = default)
         {
-            return await GetDbContext().Aggregates.AsNoTracking().Where(x => x.Expires != null && x.Expires <= at).Select(x => x.AggregateId)
+            return await _dbContext.Aggregates.AsNoTracking().Where(x => x.Expires != null && x.Expires <= at).Select(x => x.AggregateId)
                 .ToListAsync(cancellation);
         }
 
         public async Task SaveAsync(CqrsAggregateRoot aggregate, IEnumerable<ICqrsEvent> events, CancellationToken cancellation = default)
         {
-            var dbContext = GetDbContext();
+            var dbContext = _dbContext;
 
             var listEvents = new List<SerializedEvent>();
 
@@ -213,7 +215,7 @@ namespace Dapps.CqrsCore.Persistence.Store
 
         public async Task BoxAsync(Guid aggregateId, CancellationToken cancellation = default)
         {
-            var dbContext = GetDbContext();
+            var dbContext = _dbContext;
             // Serialize the event stream and write it to an external file.
             var events = await GetAsync(aggregateId, -1, cancellation);
             foreach (var ev in events)

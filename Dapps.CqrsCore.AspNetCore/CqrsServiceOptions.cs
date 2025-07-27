@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using Microsoft.EntityFrameworkCore;
 
 namespace Dapps.CqrsCore.AspNetCore

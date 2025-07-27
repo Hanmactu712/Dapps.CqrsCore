@@ -13,15 +13,18 @@ namespace Dapps.CqrsCore.Persistence.Store
     /// <summary>
     /// default snapshot store
     /// </summary>
-    public class SnapshotStore : BaseStore<ISnapshotDbContext>, ISnapshotStore
+    public class SnapshotStore : ISnapshotStore
     {
         private readonly string _offlineStorageFolder;
         private const string DefaultFolder = "Snapshot";
+        private readonly ISnapshotDbContext _dbContext;
 
-        public SnapshotStore(IServiceProvider service, SnapshotOptions configuration) : base(service)
+
+        public SnapshotStore(IServiceProvider service, SnapshotOptions configuration, ISnapshotDbContext dbContext)
         {
             _offlineStorageFolder =
                 configuration?.LocalStorage ?? throw new ArgumentNullException(nameof(SnapshotOptions));
+            _dbContext = dbContext;
         }
 
         /// <summary>
@@ -55,7 +58,7 @@ namespace Dapps.CqrsCore.Persistence.Store
         /// <returns></returns>
         public Snapshot Get(Guid id)
         {
-            var dbContext = GetDbContext();
+            var dbContext = _dbContext;
             return dbContext.Snapshots.AsNoTracking().SingleOrDefault(e => e.AggregateId.Equals(id));
         }
 
@@ -65,7 +68,7 @@ namespace Dapps.CqrsCore.Persistence.Store
         /// <param name="snapshot"></param>
         public void Save(Snapshot snapshot)
         {
-            var dbContext = GetDbContext();
+            var dbContext = _dbContext;
             var existingSnapshot = dbContext.Snapshots.AsNoTracking()
                 .SingleOrDefault(e => e.AggregateId.Equals(snapshot.AggregateId));
 
@@ -118,7 +121,7 @@ namespace Dapps.CqrsCore.Persistence.Store
 
         private void Delete(Guid aggregate)
         {
-            var dbContext = GetDbContext();
+            var dbContext = _dbContext;
 
             var snapShot = Get(aggregate);
 
@@ -132,7 +135,7 @@ namespace Dapps.CqrsCore.Persistence.Store
 
         private async Task DeleteAsync(Guid aggregate, CancellationToken cancellation = default)
         {
-            var dbContext = GetDbContext();
+            var dbContext = _dbContext;
 
             var snapShot = await GetAsync(aggregate, cancellation);
 
@@ -144,13 +147,13 @@ namespace Dapps.CqrsCore.Persistence.Store
 
         public async Task<Snapshot> GetAsync(Guid id, CancellationToken cancellation = default)
         {
-            var dbContext = GetDbContext();
+            var dbContext = _dbContext;
             return await dbContext.Snapshots.AsNoTracking().SingleOrDefaultAsync(e => e.AggregateId.Equals(id), cancellation);
         }
 
         public async Task SaveAsync(Snapshot snapshot, CancellationToken cancellation = default)
         {
-            var dbContext = GetDbContext();
+            var dbContext = _dbContext;
             var existingSnapshot = await dbContext.Snapshots.AsNoTracking()
                 .SingleOrDefaultAsync(e => e.AggregateId.Equals(snapshot.AggregateId), cancellation);
 
@@ -209,6 +212,5 @@ namespace Dapps.CqrsCore.Persistence.Store
                 State = await File.ReadAllTextAsync(file, Encoding.Unicode, cancellation)
             };
         }
-
     }
 }

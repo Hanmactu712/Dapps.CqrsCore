@@ -14,66 +14,68 @@ namespace Dapps.CqrsCore.Persistence.Store
     /// <summary>
     /// Default command store
     /// </summary>
-    public class CommandStore : BaseStore<ICommandDbContext>, ICqrsCommandStore
+    public class CommandStore : ICqrsCommandStore
     {
         private readonly string _offlineStorageFolder;
         private const string DefaultFolder = "Commands";
+        private readonly ICommandDbContext _dbContext;
 
-        public CommandStore(ISerializer serializer, IServiceProvider service, CommandStoreOptions options) : base(service)
+        public CommandStore(ISerializer serializer, CommandStoreOptions options, ICommandDbContext dbContext)
         {
             Serializer = serializer ?? throw new ArgumentNullException(nameof(ISerializer));
 
             _offlineStorageFolder = options?.CommandLocalStorage ??
                                     Path.Combine(AppDomain.CurrentDomain.BaseDirectory, DefaultFolder);
+            _dbContext = dbContext;
         }
 
         public ISerializer Serializer { get; }
 
         public bool Exists(Guid commandId)
         {
-            return GetDbContext().Commands.Any(c => c.Id.Equals(commandId));
+            return _dbContext.Commands.Any(c => c.Id.Equals(commandId));
         }
 
         public async Task<bool> ExistsAsync(Guid commandId, CancellationToken cancellation = default)
         {
-            return await GetDbContext().Commands.AnyAsync(c => c.Id.Equals(commandId), cancellation);
+            return await _dbContext.Commands.AnyAsync(c => c.Id.Equals(commandId), cancellation);
         }
 
         public SerializedCommand Get(Guid commandId)
         {
-            return GetDbContext().Commands.AsNoTracking().FirstOrDefault(c => c.Id.Equals(commandId));
+            return _dbContext.Commands.AsNoTracking().FirstOrDefault(c => c.Id.Equals(commandId));
         }
         
         public async Task<SerializedCommand> GetAsync(Guid commandId, CancellationToken cancellation = default)
         {
-            return await GetDbContext().Commands.AsNoTracking().FirstOrDefaultAsync(c => c.Id.Equals(commandId), cancellation);
+            return await _dbContext.Commands.AsNoTracking().FirstOrDefaultAsync(c => c.Id.Equals(commandId), cancellation);
         }
 
         public IEnumerable<SerializedCommand> GetByAggregateId(Guid aggregateId)
         {
-            var dbContext = GetDbContext();
+            var dbContext = _dbContext;
             return dbContext.Commands.AsNoTracking().Where(e => e.AggregateId.Equals(aggregateId)).ToList();
         }
 
         public async Task<IEnumerable<SerializedCommand>> GetByAggregateIdAsync(Guid aggregateId, CancellationToken cancellation = default)
         {
-            var dbContext = GetDbContext();
+            var dbContext = _dbContext;
             return await dbContext.Commands.AsNoTracking().Where(e => e.AggregateId.Equals(aggregateId)).ToListAsync(cancellation);
         }
 
         public IEnumerable<SerializedCommand> GetExpired(DateTimeOffset at)
         {
-            return GetDbContext().Commands.AsNoTracking().Where(c => c.SendStatus.Equals(CommandStatus.Scheduled)).ToList();
+            return _dbContext.Commands.AsNoTracking().Where(c => c.SendStatus.Equals(CommandStatus.Scheduled)).ToList();
         }
 
         public async Task<IEnumerable<SerializedCommand>> GetExpiredAsync(DateTimeOffset at, CancellationToken cancellation = default)
         {
-            return await GetDbContext().Commands.AsNoTracking().Where(c => c.SendStatus.Equals(CommandStatus.Scheduled)).ToListAsync(cancellation);
+            return await _dbContext.Commands.AsNoTracking().Where(c => c.SendStatus.Equals(CommandStatus.Scheduled)).ToListAsync(cancellation);
         }
 
         public void Save(SerializedCommand command, bool isNew)
         {
-            var dbContext = GetDbContext();
+            var dbContext = _dbContext;
             if (isNew)
             {
                 if (command.Id.Equals(Guid.Empty))
@@ -92,7 +94,7 @@ namespace Dapps.CqrsCore.Persistence.Store
 
         public async Task SaveAsync(SerializedCommand command, bool isNew, CancellationToken cancellation = default)
         {
-            var dbContext = GetDbContext();
+            var dbContext = _dbContext;
             if (isNew)
             {
                 if (command.Id.Equals(Guid.Empty))
@@ -116,7 +118,7 @@ namespace Dapps.CqrsCore.Persistence.Store
 
         public void Box(Guid aggregateId)
         {
-            var dbContext = GetDbContext();
+            var dbContext = _dbContext;
             // Serialize the event stream and write it to an external file.
             var commands = GetByAggregateId(aggregateId);
             foreach (var command in commands)
@@ -141,7 +143,7 @@ namespace Dapps.CqrsCore.Persistence.Store
         
         public async Task BoxAsync(Guid aggregateId, CancellationToken cancellation = default)
         {
-            var dbContext = GetDbContext();
+            var dbContext = _dbContext;
             // Serialize the event stream and write it to an external file.
             var commands = await GetByAggregateIdAsync(aggregateId, cancellation);
             foreach (var command in commands)

@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Dapps.CqrsCore.Event;
 using Dapps.CqrsCore.Persistence.Read;
 using Dapps.CqrsSample.Data;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Dapps.CqrsSample.EventHandlers;
@@ -30,12 +29,10 @@ public class ArticleCreatedHandler : ICqrsEventHandler<ArticleCreated>
     private readonly ILogger<ArticleCreatedHandler> _logger;
     private readonly IEfRepository<Article, ApplicationDbContext> _repository;
 
-    public ArticleCreatedHandler(ICqrsEventDispatcher queue, ILogger<ArticleCreatedHandler> logger, IServiceProvider service)
+    public ArticleCreatedHandler(ICqrsEventDispatcher queue, ILogger<ArticleCreatedHandler> logger, IEfRepository<Article, ApplicationDbContext> repository)
     {
         _logger = logger;
-        _repository = service.CreateScope().ServiceProvider.GetRequiredService<IEfRepository<Article, ApplicationDbContext>>();
-
-        _logger.LogInformation($"Register event {typeof(ArticleCreated)}");
+        _repository = repository;
     }
 
     public async Task Handle(ArticleCreated message, CancellationToken cancellationToken)

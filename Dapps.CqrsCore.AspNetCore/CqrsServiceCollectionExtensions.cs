@@ -97,41 +97,56 @@ public static class CqrsServiceCollectionExtensions
 
     private static ICqrsServiceBuilder AddDefaultCommandStore(this ICqrsServiceBuilder builder)
     {
-        builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Register CommandStore........");
-        builder.Services.AddSingleton(typeof(ICqrsCommandStore), typeof(CommandStore));
-        builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Register CommandStore........Done!");
+        builder.Logger?.LogDebug(_messageFormat, DateTimeOffset.Now, $"Register CommandStore.......");
+
+        builder.Services.AddScoped(typeof(ICqrsCommandStore), typeof(CommandStore));
+
+        builder.Logger?.LogDebug(_messageFormat, DateTimeOffset.Now, $"Register CommandStore: {typeof(CommandStore)} ........Done!");
+
         return builder;
     }
 
-    private static ICqrsServiceBuilder AddDefaultCommandQueue(this ICqrsServiceBuilder builder)
+    private static ICqrsServiceBuilder AddDefaultCommandDispatcher(this ICqrsServiceBuilder builder)
     {
-        builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Register CommandQueue........");
-        builder.Services.AddSingleton(typeof(ICqrsCommandDispatcher), typeof(CommandDispatcher));
-        builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Register CommandQueue........Done!");
+        builder.Logger?.LogDebug(_messageFormat, DateTimeOffset.Now, $"Register CommandDispatcher........");
+
+        builder.Services.AddTransient(typeof(ICqrsCommandDispatcher), typeof(CommandDispatcher));
+
+        builder.Logger?.LogDebug(_messageFormat, DateTimeOffset.Now, $"Register CommandDispatcher: {typeof(CommandDispatcher)}........Done!");
+
         return builder;
     }
 
     private static ICqrsServiceBuilder AddDefaultEventStore(this ICqrsServiceBuilder builder)
     {
-        builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Register EventStore........");
-        builder.Services.AddSingleton(typeof(ICqrsEventStore), typeof(EventStore));
-        builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Register EventStore........Done!");
+        builder.Logger?.LogDebug(_messageFormat, DateTimeOffset.Now, $"Register EventStore........");
+
+        builder.Services.AddTransient(typeof(ICqrsEventStore), typeof(EventStore));
+
+        builder.Logger?.LogDebug(_messageFormat, DateTimeOffset.Now, $"Register EventStore: {typeof(EventStore)}........Done!");
+
         return builder;
     }
 
     private static ICqrsServiceBuilder AddDefaultEventRepository(this ICqrsServiceBuilder builder)
     {
-        builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Register EventRepository........");
-        builder.Services.AddSingleton(typeof(ICqrsEventRepository), typeof(EventRepository));
-        builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Register EventRepository........Done!");
+        builder.Logger?.LogDebug(_messageFormat, DateTimeOffset.Now, $"Register EventRepository........");
+
+        builder.Services.AddScoped(typeof(ICqrsEventRepository), typeof(EventRepository));
+
+        builder.Logger?.LogDebug(_messageFormat, DateTimeOffset.Now, $"Register EventRepository: {typeof(EventRepository)}........Done!");
+
         return builder;
     }
 
-    private static ICqrsServiceBuilder AddDefaultEventQueue(this ICqrsServiceBuilder builder)
+    private static ICqrsServiceBuilder AddDefaultEventDispatcher(this ICqrsServiceBuilder builder)
     {
         builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Register EventQueue........");
-        builder.Services.AddSingleton(typeof(ICqrsEventDispatcher), typeof(EventDispatcher));
-        builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Register EventQueue........Done!");
+
+        builder.Services.AddTransient(typeof(ICqrsEventDispatcher), typeof(EventDispatcher));
+
+        builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Register EventRepository:  {typeof(EventDispatcher)} ........Done!e!");
+
         return builder;
     }
 
@@ -191,8 +206,10 @@ public static class CqrsServiceCollectionExtensions
 
             builder.Services.AddSingleton(commandOption);
             logger?.LogDebug(_messageFormat, DateTimeOffset.Now, $"CQRS Command configuration option : {JsonConvert.SerializeObject(commandOption)}");
+
             builder.Services.AddSingleton(snapshotOption);
             logger?.LogDebug(_messageFormat, DateTimeOffset.Now, $"CQRS Snapshot configuration option : {JsonConvert.SerializeObject(snapshotOption)}");
+
             builder.Services.AddSingleton(eventStoreOption);
             logger?.LogDebug(_messageFormat, DateTimeOffset.Now, $"CQRS Event configuration option : {JsonConvert.SerializeObject(eventStoreOption)}");
 
@@ -201,19 +218,19 @@ public static class CqrsServiceCollectionExtensions
             builder.AddDefaultSerializer()
                 .AddDefaultEventSourcingDb(options.DbContextOption)
                 .AddDefaultCommandStore()
-                .AddDefaultCommandQueue()
+                .AddDefaultCommandDispatcher()
                 .AddDefaultEventStore()
                 .AddDefaultEventRepository()
-                .AddDefaultEventQueue();
+                .AddDefaultEventDispatcher();
 
         }
         catch (Exception ex)
         {
-            logger?.LogInformation($"Error occurs when initiating CQRS service!. Stack Tracing: {ex}");
+            logger?.LogError($"Error occurs when initiating CQRS service!. Stack Tracing: {ex}");
         }
         finally
         {
-            logger?.LogInformation($"Finished initiating CQRS service!");
+            logger?.LogInformation($"Finished initiating CQRS services!");
         }
         return builder;
     }
@@ -228,7 +245,9 @@ public static class CqrsServiceCollectionExtensions
         Action<SnapshotOptions> configure = null)
     {
         builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Enabling Snapshot feature........");
+
         builder.Logger?.LogDebug(_messageFormat, DateTimeOffset.Now, $"Building snapshot configuration option........");
+
         var option = new SnapshotOptions();
         configure?.Invoke(option);
 
@@ -242,51 +261,53 @@ public static class CqrsServiceCollectionExtensions
 
         builder.Logger?.LogDebug(_messageFormat, DateTimeOffset.Now, $"Register SnapshotStrategy........ Done!");
 
-        builder.Services.AddSingleton(typeof(ISnapshotStore), typeof(SnapshotStore));
+        builder.Services.AddScoped(typeof(ISnapshotStore), typeof(SnapshotStore));
 
         builder.Logger?.LogDebug(_messageFormat, DateTimeOffset.Now, $"Register SnapshotStore........ Done!");
 
-        builder.Services.AddSingleton<SnapshotRepository>();
+        builder.Services.AddScoped<SnapshotRepository>();
 
         builder.Logger?.LogDebug(_messageFormat, DateTimeOffset.Now, $"Register SnapshotRepository........ Done!");
 
         builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Enabling Snapshot feature........Done!");
+
         return builder;
     }
 
     /// <summary>
-    /// Override the default snapshot repository with the new one
+    /// Override the default snapshot repository with the new one, the lifetime is Scoped by default.
     /// </summary>
     /// <typeparam name="TSnapshotRepository"></typeparam>
     /// <param name="builder"></param>
     /// <returns></returns>
-    public static ICqrsServiceBuilder AddSnapshotRepository<TSnapshotRepository>(this ICqrsServiceBuilder builder)
+    public static ICqrsServiceBuilder AddSnapshotRepository<TSnapshotRepository>(this ICqrsServiceBuilder builder, ServiceLifetime lifetime = ServiceLifetime.Scoped)
         where TSnapshotRepository : ICqrsEventRepository
     {
         builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Overriding default Snapshot Repository........");
 
-        builder.Services.Replace(new ServiceDescriptor(typeof(SnapshotRepository), typeof(TSnapshotRepository),
-            ServiceLifetime.Singleton));
+        builder.Services.Replace(new ServiceDescriptor(typeof(SnapshotRepository), typeof(TSnapshotRepository), lifetime));
 
-        builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Overriding default Snapshot Repository........ Done!");
+        builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Overriding default Snapshot Repository with {typeof(SnapshotRepository)}........ Done!");
+
         return builder;
     }
 
     /// <summary>
-    /// Override default Serializer
+    /// Override default Serializer, the lifetime is Singleton by default.
     /// </summary>
     /// <typeparam name="TSerializer"></typeparam>
     /// <param name="builder"></param>
     /// <returns></returns>
-    public static ICqrsServiceBuilder AddSerializer<TSerializer>(this ICqrsServiceBuilder builder)
+    public static ICqrsServiceBuilder AddSerializer<TSerializer>(this ICqrsServiceBuilder builder, ServiceLifetime lifetime = ServiceLifetime.Singleton)
         where TSerializer : class, ISerializer
     {
         builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Overriding default Serializer........");
 
-        var descriptor = new ServiceDescriptor(typeof(ISerializer), typeof(TSerializer), ServiceLifetime.Singleton);
+        var descriptor = new ServiceDescriptor(typeof(ISerializer), typeof(TSerializer), lifetime);
         builder.Services.Replace(descriptor);
 
-        builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Overriding default Serializer........ Done!");
+        builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Overriding default Serializer: {typeof(TSerializer)}........ Done!");
+
         return builder;
     }
 
@@ -302,11 +323,11 @@ public static class CqrsServiceCollectionExtensions
     {
         builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Overriding Event Store Db Context........");
         builder.Services.AddDbContext<TContext>(dbOptions);
-        //builder.Services.AddScoped<ICommandDbContext, TContext>();
 
         builder.Services.Replace(new ServiceDescriptor(typeof(IEventDbContext), typeof(TContext),
             ServiceLifetime.Scoped));
-        builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Overriding Event Store Db Context........ Done!");
+        builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Overriding Event Store Db Context: {typeof(TContext)}........ Done!");
+
         return builder;
     }
 
@@ -325,7 +346,8 @@ public static class CqrsServiceCollectionExtensions
         //builder.Services.AddScoped<ISnapshotDbContext, TContext>();
         builder.Services.Replace(new ServiceDescriptor(typeof(ISnapshotDbContext), typeof(TContext),
             ServiceLifetime.Scoped));
-        builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Overriding Snapshot Store Db Context........ Done!");
+        builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Overriding Snapshot Store Db Context: {typeof(TContext)}........ Done!");
+
         return builder;
     }
 
@@ -344,99 +366,102 @@ public static class CqrsServiceCollectionExtensions
         //builder.Services.AddScoped<ICommandDbContext, TContext>();
         builder.Services.Replace(new ServiceDescriptor(typeof(ICommandDbContext), typeof(TContext),
             ServiceLifetime.Scoped));
-        builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Overriding Command Store Db Context........ Done!");
+        builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Overriding Command Store Db Context: {typeof(TContext)}........ Done!");
+
         return builder;
     }
 
     /// <summary>
-    /// Override the default event store with the new one
+    /// Override the default event store with the new one, the lifetime is Scoped by default.
     /// </summary>
     /// <typeparam name="TEventStore"></typeparam>
     /// <param name="builder"></param>
     /// <returns></returns>
-    public static ICqrsServiceBuilder AddEventStore<TEventStore>(this ICqrsServiceBuilder builder)
+    public static ICqrsServiceBuilder AddEventStore<TEventStore>(this ICqrsServiceBuilder builder, ServiceLifetime lifetime = ServiceLifetime.Scoped)
         where TEventStore : ICqrsEventStore
     {
         builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Overriding Command Store........");
 
-        builder.Services.Replace(new ServiceDescriptor(typeof(ICqrsEventStore), typeof(TEventStore),
-            ServiceLifetime.Singleton));
+        builder.Services.Replace(new ServiceDescriptor(typeof(ICqrsEventStore), typeof(TEventStore), lifetime));
 
-        builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Overriding Command Store........ Done!");
+        builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Overriding Command Store: {typeof(TEventStore)}........ Done!");
+
         return builder;
     }
 
     /// <summary>
-    /// Override default event repository with the new one
+    /// Override default event repository with the new one, the lifetime is Scoped by default.
     /// </summary>
     /// <typeparam name="TEventRepository"></typeparam>
     /// <param name="builder"></param>
     /// <returns></returns>
-    public static ICqrsServiceBuilder AddEventRepository<TEventRepository>(this ICqrsServiceBuilder builder)
+    public static ICqrsServiceBuilder AddEventRepository<TEventRepository>(this ICqrsServiceBuilder builder, ServiceLifetime lifetime = ServiceLifetime.Scoped)
         where TEventRepository : ICqrsEventRepository
     {
         builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Overriding Command Repository........");
 
-        builder.Services.Replace(new ServiceDescriptor(typeof(ICqrsEventRepository), typeof(TEventRepository),
-            ServiceLifetime.Singleton));
-        builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Overriding Command Repository........ Done!");
+        builder.Services.Replace(new ServiceDescriptor(typeof(ICqrsEventRepository), typeof(TEventRepository), lifetime));
+
+        builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Overriding Command Repository: {typeof(TEventRepository)}........ Done!");
+
         return builder;
     }
 
     /// <summary>
-    /// Override default Event Queue
+    /// Override default Event Queue, the lifetime is Transient by default.
     /// </summary>
     /// <typeparam name="TQueue"></typeparam>
     /// <param name="builder"></param>
     /// <returns></returns>
-    public static ICqrsServiceBuilder AddEventQueue<TQueue>(this ICqrsServiceBuilder builder)
+    public static ICqrsServiceBuilder AddEventDispatcher<TQueue>(this ICqrsServiceBuilder builder, ServiceLifetime lifetime = ServiceLifetime.Transient)
         where TQueue : ICqrsEventDispatcher
     {
         builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Overriding Event Queue........");
-        builder.Services.Replace(new ServiceDescriptor(typeof(ICqrsEventDispatcher), typeof(TQueue),
-            ServiceLifetime.Singleton));
 
-        builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Overriding Event Queue........ Done!");
+        builder.Services.Replace(new ServiceDescriptor(typeof(ICqrsEventDispatcher), typeof(TQueue), lifetime));
+
+        builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Overriding Event Queue: {typeof(TQueue)}........ Done!");
+
         return builder;
     }
 
     /// <summary>
-    /// Override the default command store with the new one
+    /// Override the default command store with the new one, the lifetime is Scoped by default.
     /// </summary>
     /// <typeparam name="TCommandStore"></typeparam>
     /// <param name="builder"></param>
     /// <returns></returns>
-    public static ICqrsServiceBuilder AddCommandStore<TCommandStore>(this ICqrsServiceBuilder builder)
+    public static ICqrsServiceBuilder AddCommandStore<TCommandStore>(this ICqrsServiceBuilder builder, ServiceLifetime lifetime = ServiceLifetime.Scoped)
         where TCommandStore : ICqrsCommandStore
     {
         builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Overriding Command Store........");
-        builder.Services.Replace(new ServiceDescriptor(typeof(ICqrsCommandStore), typeof(TCommandStore),
-            ServiceLifetime.Singleton));
 
-        builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Overriding Command Store........ Done!");
+        builder.Services.Replace(new ServiceDescriptor(typeof(ICqrsCommandStore), typeof(TCommandStore), lifetime));
+
+        builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Overriding Command Store: {typeof(TCommandStore)}........ Done!");
+
         return builder;
     }
 
     /// <summary>
-    /// Override default command queue
+    /// Override default command queue, the lifetime is Transient by default.
     /// </summary>
     /// <typeparam name="TQueue"></typeparam>
     /// <param name="builder"></param>
     /// <returns></returns>
-    public static ICqrsServiceBuilder AddCommandQueue<TQueue>(this ICqrsServiceBuilder builder)
+    public static ICqrsServiceBuilder AddCommandDispatcher<TQueue>(this ICqrsServiceBuilder builder, ServiceLifetime lifetime = ServiceLifetime.Transient)
         where TQueue : ICqrsCommandDispatcher
     {
         builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Overriding Command Queue........");
 
-        builder.Services.Replace(new ServiceDescriptor(typeof(ICqrsCommandDispatcher), typeof(TQueue),
-            ServiceLifetime.Singleton));
+        builder.Services.Replace(new ServiceDescriptor(typeof(ICqrsCommandDispatcher), typeof(TQueue), lifetime));
 
-        builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Overriding Command Queue........ Done!");
+        builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Overriding Command Queue: {typeof(TQueue)}........ Done!");
         return builder;
     }
 
     /// <summary>
-    /// Register all ICommandHandler && IEventHandler in the calling assembly
+    /// Register all ICommandHandler && IEventHandler in the calling assembly, or in the assemblies specified in the options.
     /// </summary>
     /// <param name="builder"></param>
     /// <param name="optionAction"></param>
@@ -445,8 +470,6 @@ public static class CqrsServiceCollectionExtensions
         Action<CqrsHandlerOptions> optionAction = null)
     {
         builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Register CQRS Handlers........");
-        //builder.AddCommandHandlers(optionAction);
-        //builder.AddEventHandlers(optionAction);
 
         var options = new CqrsHandlerOptions();
         optionAction?.Invoke(options);
@@ -455,115 +478,19 @@ public static class CqrsServiceCollectionExtensions
 
         var assemblies = assemblyNames != null && assemblyNames.Count > 0
             ? AppDomain.CurrentDomain.GetAssemblies().Where(e =>
-                    assemblyNames.Contains(e.FullName) || assemblyNames.Contains(e.GetName().Name))
-                .ToArray()
-            : AppDomain.CurrentDomain.GetAssemblies().ToArray();
+                    assemblyNames.Contains(e.FullName) || assemblyNames.Contains(e.GetName().Name)).ToList()
 
-        //var mediatRAssemblies = new[]
-        //  {
-        //    Assembly.GetAssembly(typeof(User)), // Domain,
-        //    Assembly.GetAssembly(typeof(Program)), // Handlers,
-        //  };
+            : AppDomain.CurrentDomain.GetAssemblies().ToList();
 
-        builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(assemblies!))
+        if (options.HandlerAssemblies != null && options.HandlerAssemblies.Any())
+        {
+            assemblies.AddRange(options.HandlerAssemblies.ToList());
+        }
+
+        builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(assemblies.ToArray()))
                 .AddScoped(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
 
         builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Register CQRS Handlers........ Done!");
         return builder;
     }
-
-    /// <summary>
-    /// Register all ICommandHandler exist in the given assembly or all running assembly context
-    /// </summary>
-    /// <param name="builder"></param>
-    /// <param name="optionAction"></param>
-    /// <returns></returns>
-    //public static ICqrsServiceBuilder AddCommandHandlers(this ICqrsServiceBuilder builder,
-    //    Action<CqrsHandlerOptions> optionAction = null)
-    //{
-    //    builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Register Command Handlers........");
-    //    var options = new CqrsHandlerOptions();
-    //    optionAction?.Invoke(options);
-
-    //    builder.RegisterHandler(typeof(ICqrsCommand), typeof(ICqrsCommandHandler<>), typeof(CommandHandler<>), options);
-    //    builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Register Command Handlers........ Done!");
-    //    return builder;
-    //}
-
-    ///// <summary>
-    ///// Register all IEventHandler exist in the given assembly or all running assembly context
-    ///// </summary>
-    ///// <param name="builder"></param>
-    ///// <param name="optionAction"></param>
-    ///// <returns></returns>
-    //public static ICqrsServiceBuilder AddEventHandlers(this ICqrsServiceBuilder builder,
-    //    Action<CqrsHandlerOptions> optionAction = null)
-    //{
-    //    builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Register Event Handlers........");
-    //    var options = new CqrsHandlerOptions();
-    //    optionAction?.Invoke(options);
-    //    builder.RegisterHandler(typeof(ICqrsEvent), typeof(ICqrsEventHandler<>), typeof(Event.EventHandler<>), options);
-    //    builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Register Event Handlers........ Done!");
-    //    return builder;
-    //}
-    //private static ICqrsServiceBuilder RegisterHandler(this ICqrsServiceBuilder builder, Type argumentType,
-    //    Type interfaceType, Type implementationType, CqrsHandlerOptions options)
-    //{
-    //    var assemblyNames = options?.HandlerAssemblyNames?.ToList();
-
-    //    var assemblies = assemblyNames != null && assemblyNames.Count > 0
-    //        ? AppDomain.CurrentDomain.GetAssemblies().Where(e =>
-    //                assemblyNames.Contains(e.FullName) || assemblyNames.Contains(e.GetName().Name))
-    //            .ToList()
-    //        : AppDomain.CurrentDomain.GetAssemblies().ToList();
-
-    //    builder.Logger?.LogDebug(_messageFormat, DateTimeOffset.Now, $"Number of loading Assemblies: {assemblies.Count}");
-
-    //    int count = 0;
-
-    //    foreach (var assembly in assemblies)
-    //    {
-    //        if (assembly == null) continue;
-
-    //        builder.Logger?.LogDebug(_messageFormat, DateTimeOffset.Now, $"Loading Assemblies: {assembly.FullName}........");
-
-    //        var commands = AssemblyUtils.GetTypesDerivedFromType(assembly, argumentType);
-
-    //        builder.Logger?.LogDebug(_messageFormat, DateTimeOffset.Now, $"Number of Commands/Events: {commands.Length}........");
-
-    //        foreach (var commandType in commands)
-    //        {
-    //            builder.Logger?.LogDebug(_messageFormat, DateTimeOffset.Now, $"Scanning Commands/Events type: {commandType}........");
-
-    //            var handlerType = interfaceType;
-    //            var implementedType = implementationType;
-    //            Type[] arg = { commandType };
-    //            var genericHandlerType = handlerType.MakeGenericType(arg);
-    //            var genericImplementedHandlerType = implementedType.MakeGenericType(arg);
-
-    //            var commandHandlerType = AssemblyUtils
-    //                .GetTypesDerivedFromType(assembly, genericImplementedHandlerType).ToList();
-
-    //            builder.Logger?.LogDebug(_messageFormat, DateTimeOffset.Now, $"Found {commandHandlerType.Count} handlers matches with {commandType}........");
-
-    //            if (commandType != null && commandHandlerType.Count > 0)
-    //            {
-    //                builder.Services.AddSingleton(genericHandlerType, commandHandlerType[0]);
-    //                count++;
-
-    //                builder.Logger?.LogDebug(_messageFormat, DateTimeOffset.Now, $"Register handler {commandHandlerType[0].FullName} for {commandType}........ Done!");
-    //            }
-    //            else
-    //            {
-    //                builder.Logger?.LogDebug(_messageFormat, DateTimeOffset.Now, $"There is no Handler matches with {commandType}........");
-    //            }
-    //        }
-
-    //        builder.Logger?.LogDebug(_messageFormat, DateTimeOffset.Now, $"Loading Assemblies: {assembly.FullName}........ Done!");
-    //    }
-
-    //    builder.Logger?.LogInformation(_messageFormat, DateTimeOffset.Now, $"Total handlers has been registered: {count}........");
-
-    //    return builder;
-    //}
 }

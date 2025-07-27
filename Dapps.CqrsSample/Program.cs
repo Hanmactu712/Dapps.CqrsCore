@@ -72,7 +72,7 @@ namespace Dapps.CqrsSample
                 {
                     _logger = services.BuildServiceProvider().GetRequiredService<ILogger<Program>>();
 
-                    var currentAssembly = Assembly.GetAssembly(typeof(Program)).GetName().Name;
+                    var currentAssembly = Assembly.GetAssembly(typeof(Program));
 
                     //Register CQRS service. Using services.AddCqrsService() only if want to use default configuration & services
                     services.AddCqrsService(_configuration,
@@ -103,9 +103,9 @@ namespace Dapps.CqrsSample
                         })
                         .AddSerializer<Serializer>() //add custom serializer if needed
                         .AddCommandStore<CommandStore>() //add custom CommandStore if needed
-                        .AddCommandQueue<CommandDispatcher>() //add custom CommandQueue if needed
+                        .AddCommandDispatcher<CommandDispatcher>() //add custom CommandQueue if needed
                         .AddEventStore<EventStore>() //add custom EventStore if needed
-                        .AddEventQueue<EventDispatcher>() //add custom EventQueue if needed
+                        .AddEventDispatcher<EventDispatcher>() //add custom EventQueue if needed
                         .AddEventRepository<EventRepository>() //add custom EventRepository if needed
                         .AddSnapshotFeature(option =>
                         {
@@ -122,10 +122,10 @@ namespace Dapps.CqrsSample
                             //option.UseInMemoryDatabase("SnapshotDb");
                         })
                         //This functions will looking for all command handlers & event handlers to register to Service Providers
-                        .AddHandlers(option => option.HandlerAssemblyNames = new List<string>()
+                        .AddHandlers(option => option.HandlerAssemblies = new List<Assembly>()
                         {
                             currentAssembly
-                        });                        
+                        });
 
                     //add db context & repository for read part of the application
                     services.AddDbContext<ApplicationDbContext>(option =>
