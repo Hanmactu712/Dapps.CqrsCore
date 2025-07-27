@@ -7,10 +7,10 @@
 Add CQRS builder for CQRS Service which be using by application.</Description>
     <PackageProjectUrl>https://github.com/Hanmactu712/Dapps.CqrsCore</PackageProjectUrl>
     <RepositoryUrl>https://github.com/Hanmactu712/Dapps.CqrsCore</RepositoryUrl>
-    <PackageTags>v1.2.1.0</PackageTags>
+    <PackageTags>v1.2.1</PackageTags>
     <PackageReleaseNotes>- Bug fixing
 - Update Async function</PackageReleaseNotes>
-    <Version>1.2.1.0</Version>
+    <Version>1.2.1</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>Dapps.CqrsCore.AspNetCore.snk</AssemblyOriginatorKeyFile>
