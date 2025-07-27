@@ -50,10 +50,11 @@ jobs:
           draft: false
           prerelease: false
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload Release Assets
+        uses: actions/upload-artifact@v4
         with:
-          name: NuGet
-          path: .\bin\release\**\*.nupkg
+          name: ${{ github.ref_name }}
+          path: .\**\*.nupkg
 
       - name: Setup NuGet
         uses: NuGet/setup-nuget@v1.1.1
