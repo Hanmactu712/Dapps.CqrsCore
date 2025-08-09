@@ -1,10 +1,10 @@
-[![Dapps.CqrsCore.AspNetCore](https://img.shields.io/nuget/v/Dapps.CqrsCore.AspNetCore)](https://www.nuget.org/packages/Dapps.CqrsCore.AspNetCore/)
+Dapps.CqrsCore.AspNetCore - [![Dapps.CqrsCore.AspNetCore](https://img.shields.io/nuget/v/Dapps.CqrsCore.AspNetCore)](https://www.nuget.org/packages/Dapps.CqrsCore.AspNetCore/)
 [![Dapps.CqrsCore.AspNetCore](https://img.shields.io/nuget/dt/Dapps.CqrsCore.AspNetCore)](https://www.nuget.org/packages/Dapps.CqrsCore.AspNetCore/)
 
-[![Dapps.CqrsCore](https://img.shields.io/nuget/v/Dapps.CqrsCore)](https://www.nuget.org/packages/Dapps.CqrsCore/)
+Dapps.CqrsCore - [![Dapps.CqrsCore](https://img.shields.io/nuget/v/Dapps.CqrsCore)](https://www.nuget.org/packages/Dapps.CqrsCore/)
 [![Dapps.CqrsCore](https://img.shields.io/nuget/dt/Dapps.CqrsCore)](https://www.nuget.org/packages/Dapps.CqrsCore/)
 
-[![Dapps.CqrsCore.Persistence](https://img.shields.io/nuget/v/Dapps.CqrsCore.Persistence)](https://www.nuget.org/packages/Dapps.CqrsCore.Persistence/)
+Dapps.CqrsCore.Persistence - [![Dapps.CqrsCore.Persistence](https://img.shields.io/nuget/v/Dapps.CqrsCore.Persistence)](https://www.nuget.org/packages/Dapps.CqrsCore.Persistence/)
 [![Dapps.CqrsCore.Persistence](https://img.shields.io/nuget/dt/Dapps.CqrsCore.Persistence)](https://www.nuget.org/packages/Dapps.CqrsCore.Persistence/)
 
 # ASP.NET Core CQRS Service
