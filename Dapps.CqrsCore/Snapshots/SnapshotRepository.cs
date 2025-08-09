@@ -15,7 +15,7 @@ namespace Dapps.CqrsCore.Snapshots;
 /// <summary>
 /// Saves and gets snapshots to and from a snapshot store.
 /// </summary>
-public class SnapshotRepository : ICqrsEventRepository
+public class SnapshotRepository : ISnapshotRepository
 {
     private readonly GuidCache<CqrsAggregateRoot> _cache = new GuidCache<CqrsAggregateRoot>();
 

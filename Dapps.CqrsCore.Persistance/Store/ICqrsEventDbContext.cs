@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Dapps.CqrsCore.Persistence.Store
 {
-    public interface IEventDbContext
+    public interface ICqrsEventDbContext
     {
         /// <summary>
         /// Db set of aggregates

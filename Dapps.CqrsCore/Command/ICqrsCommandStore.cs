@@ -14,7 +14,7 @@ public interface ICqrsCommandStore
     /// <summary>
     /// Serializer using to serialize command & event to persist
     /// </summary>
-    ISerializer Serializer { get; }
+    ICqrsSerializer Serializer { get; }
 
     /// <summary>
     /// Check if a command is exists

@@ -11,13 +11,13 @@ public static class CommandExtensions
     /// <param name="serializedCommand"></param>
     /// <param name="serializer"></param>
     /// <returns></returns>
-    public static ICqrsCommand Deserialize(this SerializedCommand serializedCommand, ISerializer serializer)
+    public static ICqrsCommand Deserialize(this SerializedCommand serializedCommand, ICqrsSerializer serializer)
     {
         if (serializedCommand == null)
             throw new ArgumentNullException(nameof(SerializedCommand));
 
         if (serializer == null)
-            throw new ArgumentNullException(nameof(ISerializer));
+            throw new ArgumentNullException(nameof(ICqrsSerializer));
 
         var data = serializer.Deserialize<ICqrsCommand>(serializedCommand.Data, Type.GetType(serializedCommand.Class));
 
@@ -37,13 +37,13 @@ public static class CommandExtensions
     /// <param name="aggregateId"></param>
     /// <param name="version"></param>
     /// <returns></returns>
-    public static SerializedCommand Serialize(this ICqrsCommand command, ISerializer serializer, int? version)
+    public static SerializedCommand Serialize(this ICqrsCommand command, ICqrsSerializer serializer, int? version)
     {
         if (command == null)
             throw new ArgumentNullException(nameof(ICqrsCommand));
 
         if (serializer == null)
-            throw new ArgumentNullException(nameof(ISerializer));
+            throw new ArgumentNullException(nameof(ICqrsSerializer));
 
         var data = serializer.Serialize(command, new[] { "Version", "SendScheduled", "SendStarted", "SendCompleted", "SendCancelled" });
 

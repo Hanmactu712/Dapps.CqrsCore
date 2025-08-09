@@ -25,16 +25,19 @@ namespace Dapps.CqrsSample.CommandHandlers
         }
     }
 
-    public class CreateArticleHandler : CommandHandler<CreateArticle>
+    public class CreateArticleHandler : ICqrsCommandHandler<CreateArticle>
     {
         private readonly ILogger<CreateArticle> _logger;
-        public CreateArticleHandler(ICqrsCommandDispatcher queue, ICqrsEventRepository eventRepository, ICqrsEventDispatcher eventQueue,
-            ILogger<CreateArticle> logger, SnapshotRepository snapshotRepository) : base(queue, eventRepository, eventQueue, snapshotRepository)
+        private readonly ICqrsEventRepository _repository;
+
+        public CreateArticleHandler(ILogger<CreateArticle> logger, ISnapshotRepository snapshotRepository)
         {
             _logger = logger;
             _logger.LogInformation("Init event handler");
+            _repository = snapshotRepository;
         }
-        public override async Task Handle(CreateArticle command, CancellationToken cancellationToken)
+
+        public async Task Handle(CreateArticle command, CancellationToken cancellationToken)
         {
             //Console.WriteLine("Save to database");
             _logger.LogInformation("=========Handle command message");
@@ -42,7 +45,7 @@ namespace Dapps.CqrsSample.CommandHandlers
             aggregate.CreateArticle(command.Title, command.Summary, command.Details, command.Id);
             _logger.LogInformation("=========Fire event to event handler");
 
-            await CommitAsync(aggregate, cancellationToken);
+            await _repository.SaveAsync(aggregate, cancellation: cancellationToken);
         }
     }
 }

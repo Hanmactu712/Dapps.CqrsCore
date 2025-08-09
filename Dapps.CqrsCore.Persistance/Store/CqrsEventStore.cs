@@ -16,22 +16,22 @@ namespace Dapps.CqrsCore.Persistence.Store
     /// <summary>
     /// default event store
     /// </summary>
-    public class EventStore : ICqrsEventStore
+    public class CqrsEventStore : ICqrsEventStore
     {
         private readonly string _offlineStorageFolder;
         private const string DefaultFolder = "Events";
-        private readonly IEventDbContext _dbContext;
+        private readonly ICqrsEventDbContext _dbContext;
 
-        public EventStore(ISerializer serializer, IServiceProvider service, EventStoreOptions options, IEventDbContext dbContext)
+        public CqrsEventStore(ICqrsSerializer serializer, IServiceProvider service, EventStoreOptions options, ICqrsEventDbContext dbContext)
         {
-            Serializer = serializer ?? throw new ArgumentNullException(nameof(ISerializer));
+            Serializer = serializer ?? throw new ArgumentNullException(nameof(ICqrsSerializer));
 
             _offlineStorageFolder = options?.EventLocalStorage ??
                                     Path.Combine(AppDomain.CurrentDomain.BaseDirectory);
             _dbContext = dbContext;
         }
 
-        public ISerializer Serializer { get; }
+        public ICqrsSerializer Serializer { get; }
 
         public void Box(Guid aggregateId)
         {
@@ -200,54 +200,77 @@ namespace Dapps.CqrsCore.Persistence.Store
 
             await dbContext.BeginTransactionAsync(cancellation);
 
-            EnsureAggregateExist(aggregate.Id, aggregate.GetType().Name.Replace("Aggregate", string.Empty),
-                aggregate.GetType().FullName);
-
-            foreach (var serializedEvent in listEvents)
+            try
             {
-                await dbContext.Events.AddAsync(serializedEvent, cancellation);
+                EnsureAggregateExist(aggregate.Id, aggregate.GetType().Name.Replace("Aggregate", string.Empty),
+                        aggregate.GetType().FullName);
+
+                foreach (var serializedEvent in listEvents)
+                {
+                    await dbContext.Events.AddAsync(serializedEvent, cancellation);
+                }
+
+                await dbContext.SaveChangesAsync(cancellation);
+
+                await dbContext.CommitAsync(cancellation);
             }
-
-            await dbContext.SaveChangesAsync(cancellation);
-
-            await dbContext.CommitAsync(cancellation);
+            catch (Exception)
+            {
+                await dbContext.RollbackAsync(cancellation);
+                throw;
+            }
         }
 
         public async Task BoxAsync(Guid aggregateId, CancellationToken cancellation = default)
         {
+
             var dbContext = _dbContext;
-            // Serialize the event stream and write it to an external file.
-            var events = await GetAsync(aggregateId, -1, cancellation);
-            foreach (var ev in events)
+
+            try
             {
-                // Create a new directory using the aggregate identifier as the folder name.
-                var path = Path.Combine(_offlineStorageFolder, DefaultFolder, aggregateId.ToString());
-                if (!Directory.Exists(path))
-                    Directory.CreateDirectory(path);
-
-                //get json data from event
-                var serializedEvent = ev.Serialize(Serializer, aggregateId, ev.Version);
-                var data = Serializer.Serialize(serializedEvent);
-                var file = Path.Combine(path, $"{ev.Version}.json");
-                await File.WriteAllTextAsync(file, data, Encoding.Unicode, cancellation);
-
-                // Delete the aggregate and the events from the online logs.
-                var existingEvent = await dbContext.Events.SingleOrDefaultAsync(e =>
-                    e.AggregateId.Equals(ev.AggregateId) && e.Version.Equals(ev.Version), cancellation);
-                if (existingEvent != null)
+                await dbContext.BeginTransactionAsync(cancellation);
+                // Serialize the event stream and write it to an external file.
+                var events = await GetAsync(aggregateId, -1, cancellation);
+                foreach (var ev in events)
                 {
-                    dbContext.Events.Remove(existingEvent);
+                    // Create a new directory using the aggregate identifier as the folder name.
+                    var path = Path.Combine(_offlineStorageFolder, DefaultFolder, aggregateId.ToString());
+                    if (!Directory.Exists(path))
+                        Directory.CreateDirectory(path);
+
+                    //get json data from event
+                    var serializedEvent = ev.Serialize(Serializer, aggregateId, ev.Version);
+                    var data = Serializer.Serialize(serializedEvent);
+                    var file = Path.Combine(path, $"{ev.Version}.json");
+                    await File.WriteAllTextAsync(file, data, Encoding.Unicode, cancellation);
+
+                    // Delete the aggregate and the events from the online logs.
+                    var existingEvent = await dbContext.Events.SingleOrDefaultAsync(e =>
+                        e.AggregateId.Equals(ev.AggregateId) && e.Version.Equals(ev.Version), cancellation);
+                    if (existingEvent != null)
+                    {
+                        dbContext.Events.Remove(existingEvent);
+                    }
                 }
+
+                //remove aggregate
+                var existingAggregate = await dbContext.Aggregates
+                    .SingleOrDefaultAsync(e => e.AggregateId.Equals(aggregateId), cancellation);
+
+                if (existingAggregate != null)
+                {
+                    dbContext.Aggregates.Remove(existingAggregate);
+                }
+
+                await dbContext.SaveChangesAsync(cancellation);
+
+                await dbContext.CommitAsync(cancellation);
             }
-
-            //remove aggregate
-            var existingAggregate = await dbContext.Aggregates.AsNoTracking()
-                .SingleOrDefaultAsync(e => e.AggregateId.Equals(aggregateId), cancellation);
-
-            if (existingAggregate != null)
-                dbContext.Aggregates.Remove(existingAggregate);
-
-            await dbContext.SaveChangesAsync(cancellation);
+            catch (Exception)
+            {
+                await dbContext.RollbackAsync(cancellation);
+                throw;
+            }
         }
 
         public async Task<IEnumerable<SerializedEvent>> UnBoxAsync(Guid aggregate, CancellationToken cancellation = default)

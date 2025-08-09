@@ -11,13 +11,13 @@ namespace Dapps.CqrsCore.Command;
 /// <summary>
 /// Default implementation of <see cref="ICqrsCommandDispatcher"/> interface. Which is handlers for commands in memory and use <see cref="ICqrsCommandStore"/> to store commands.
 /// </summary>
-public class CommandDispatcher : ICqrsCommandDispatcher
+public class CqrsCommandDispatcher : ICqrsCommandDispatcher
 {
     private readonly ICqrsCommandStore _store;
     private readonly bool _saveAll;
     private readonly IMediator _mediator; //use MediatR to send command to handlers
 
-    public CommandDispatcher(ICqrsCommandStore store, CommandStoreOptions option, IMediator mediator)
+    public CqrsCommandDispatcher(ICqrsCommandStore store, CommandStoreOptions option, IMediator mediator)
     {
         _store = store ?? throw new ArgumentNullException(nameof(ICqrsCommandStore));
         if (option == null)

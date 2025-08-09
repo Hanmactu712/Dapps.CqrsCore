@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Dapps.CqrsSample.EventSourcing
 {
-    public class CommandDbContext : DbContext, ICommandDbContext
+    public class CommandDbContext : DbContext, ICqrsCommandDbContext
     {
         private IDbContextTransaction _transaction;
 
@@ -72,5 +72,19 @@ namespace Dapps.CqrsSample.EventSourcing
             _transaction = null;
         }
 
+
+        public void Rollback()
+        {
+            _transaction.Rollback();
+            _transaction.Dispose();
+            _transaction = null;
+        }
+
+        public async Task RollbackAsync(CancellationToken cancellation = default)
+        {
+            await _transaction.RollbackAsync(cancellation);
+            await _transaction.DisposeAsync();
+            _transaction = null;
+        }
     }
 }

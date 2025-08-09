@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Dapps.CqrsSample.EventSourcing
 {
-    public class EventDbContext : DbContext, IEventDbContext
+    public class EventDbContext : DbContext, ICqrsEventDbContext
     {
         private IDbContextTransaction _transaction;
 

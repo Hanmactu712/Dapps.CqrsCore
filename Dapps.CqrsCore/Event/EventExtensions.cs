@@ -8,7 +8,7 @@ public static class EventExtensions
     /// <summary>
     /// Returns a deserialized event.
     /// </summary>
-    public static ICqrsEvent Deserialize(this SerializedEvent x, ISerializer serializer)
+    public static ICqrsEvent Deserialize(this SerializedEvent x, ICqrsSerializer serializer)
     {
         var data = serializer.Deserialize<ICqrsEvent>(x.Data, Type.GetType(x.Class));
 
@@ -24,7 +24,7 @@ public static class EventExtensions
     /// <summary>
     /// Returns a serialized event.
     /// </summary>
-    public static SerializedEvent Serialize(this ICqrsEvent ev, ISerializer serializer, Guid aggregateId, int version)
+    public static SerializedEvent Serialize(this ICqrsEvent ev, ICqrsSerializer serializer, Guid aggregateId, int version)
     {
         var data = serializer.Serialize(ev, new[] { "AggregateId", "Version", "Time", "ReferenceId" });
 

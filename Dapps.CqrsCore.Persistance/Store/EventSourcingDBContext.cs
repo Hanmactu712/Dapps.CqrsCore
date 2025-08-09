@@ -13,7 +13,7 @@ namespace Dapps.CqrsCore.Persistence.Store
     /// <summary>
     /// Default DB context for EventSourcing store which contains Aggregate store, Event Store, Command Store and Snapshot Store
     /// </summary>
-    public class EventSourcingDbContext : DbContext, ICommandDbContext, IEventDbContext, ISnapshotDbContext
+    public class EventSourcingDbContext : DbContext, ICqrsCommandDbContext, ICqrsEventDbContext, ISnapshotDbContext
     {
         private IDbContextTransaction _transaction = null;
 

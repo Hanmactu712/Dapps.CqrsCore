@@ -11,13 +11,15 @@ namespace Dapps.CqrsCore.Event;
 /// <summary>
 /// Repository for event to persist event to event store
 /// </summary>
-public class EventRepository : ICqrsEventRepository
+public class CqrsEventRepository : ICqrsEventRepository
 {
     private readonly ICqrsEventStore _store;
+    private readonly ICqrsEventDispatcher _eventDispatcher;
 
-    public EventRepository(ICqrsEventStore store)
+    public CqrsEventRepository(ICqrsEventStore store, ICqrsEventDispatcher eventDispatcher)
     {
         _store = store ?? throw new ArgumentNullException(nameof(store));
+        _eventDispatcher = eventDispatcher;
     }
 
     /// <summary>
@@ -34,7 +36,7 @@ public class EventRepository : ICqrsEventRepository
     }
 
     /// <summary>
-    /// Saves all uncommitted changes to the event store.
+    /// Saves all uncommitted changes to the event store and publishes the events to the event dispatcher.
     /// </summary>
     public IList<ICqrsEvent> Save<T>(T aggregate, int? version) where T : CqrsAggregateRoot
     {
@@ -46,6 +48,12 @@ public class EventRepository : ICqrsEventRepository
 
         // Save the uncommitted changes.
         _store.Save(aggregate, events);
+
+        // Dispatch the events to the event dispatcher.
+        foreach (var ev in events)
+        {
+            _eventDispatcher.Publish(ev);
+        }
 
         // The event repository is not responsible for publishing these events. Instead they are returned to the 
         // caller for that purpose.
@@ -62,6 +70,12 @@ public class EventRepository : ICqrsEventRepository
 
         // Save the uncommitted changes.
         await _store.SaveAsync(aggregate, events, cancellation);
+
+        // Dispatch the events to the event dispatcher.
+        foreach (var ev in events)
+        {
+            await _eventDispatcher.PublishAsync(ev);
+        }
 
         // The event repository is not responsible for publishing these events. Instead they are returned to the 
         // caller for that purpose.

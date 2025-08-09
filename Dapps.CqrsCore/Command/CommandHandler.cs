@@ -10,14 +10,15 @@ namespace Dapps.CqrsCore.Command;
 /// <summary>
 /// Base command handler which register handler for a single command to command queue and commit changes changes to event sourcing as well as public event for subscribers
 /// </summary>
+[Obsolete("Use Dapps.CqrsCore.Command.ICqrsCommandHandler<TCommand> instead. This will be removed in future versions.")]
 public abstract class CommandHandler<TCommand> : ICqrsCommandHandler<TCommand> where TCommand : ICqrsCommand
 {
     private readonly ICqrsEventRepository _repository;
-    private readonly ICqrsEventDispatcher _eventQueue;
+    private readonly ICqrsEventDispatcher _eventDispatcher;
 
-    protected CommandHandler(ICqrsCommandDispatcher queue, ICqrsEventRepository eventRepository, ICqrsEventDispatcher eventQueue, SnapshotRepository snapshotRepository = null)
+    protected CommandHandler(ICqrsCommandDispatcher queue, ICqrsEventRepository eventRepository, ICqrsEventDispatcher eventDispatcher, ISnapshotRepository snapshotRepository = null)
     {
-        _eventQueue = eventQueue ?? throw new ArgumentNullException(nameof(ICqrsCommandDispatcher));
+        _eventDispatcher = eventDispatcher ?? throw new ArgumentNullException(nameof(ICqrsCommandDispatcher));
 
         //using snapshot repository if any, otherwise using normal event repository
         _repository = snapshotRepository ??
@@ -58,7 +59,7 @@ public abstract class CommandHandler<TCommand> : ICqrsCommandHandler<TCommand> w
         var changes = _repository.Save(aggregate);
         foreach (var change in changes)
         {
-            _eventQueue.Publish(change);
+            _eventDispatcher.Publish(change);
         }
     }
 
@@ -73,7 +74,7 @@ public abstract class CommandHandler<TCommand> : ICqrsCommandHandler<TCommand> w
 
         foreach (var change in changes)
         {
-            await _eventQueue.PublishAsync(change, cancellation);
+            await _eventDispatcher.PublishAsync(change, cancellation);
         }
     }
 

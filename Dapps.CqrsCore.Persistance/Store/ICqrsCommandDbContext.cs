@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace Dapps.CqrsCore.Persistence.Store
 {
-    public interface ICommandDbContext
+    public interface ICqrsCommandDbContext
     {
         /// <summary>
         /// DB set for storing command records
@@ -62,5 +62,16 @@ namespace Dapps.CqrsCore.Persistence.Store
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         Task CommitAsync(CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// rolelbacks the transaction.
+        /// </summary>
+        void Rollback();
+
+        /// <summary>
+        /// Rollbacks the transaction asynchronously.
+        /// </summary>
+        /// <returns></returns>
+        Task RollbackAsync(CancellationToken cancellation = default);
     }
 }

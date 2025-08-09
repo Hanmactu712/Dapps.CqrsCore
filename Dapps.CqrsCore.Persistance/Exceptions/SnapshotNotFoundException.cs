@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Runtime.Serialization;
 
 namespace Dapps.CqrsCore.Persistence.Exceptions
 {
@@ -15,10 +14,6 @@ namespace Dapps.CqrsCore.Persistence.Exceptions
         }
 
         public SnapshotNotFoundException(string message, Exception innerException) : base(message, innerException)
-        {
-        }
-
-        protected SnapshotNotFoundException(SerializationInfo info, StreamingContext context) : base(info, context)
         {
         }
     }

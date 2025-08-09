@@ -25,22 +25,23 @@ namespace Dapps.CqrsSample.CommandHandlers
         }
     }
 
-    public class UpdateArticleHandler : CommandHandler<UpdateArticle>
+    public class UpdateArticleHandler : ICqrsCommandHandler<UpdateArticle>
     {
         private readonly ILogger<UpdateArticle> _logger;
-        public UpdateArticleHandler(ICqrsCommandDispatcher queue, ICqrsEventRepository eventRepository, ICqrsEventDispatcher eventQueue,
-            ILogger<UpdateArticle> logger, SnapshotRepository snapshotRepository) : base(queue, eventRepository, eventQueue, snapshotRepository)
+        private readonly ICqrsEventRepository _repository;
+        public UpdateArticleHandler(ILogger<UpdateArticle> logger, ISnapshotRepository snapshotRepository)
         {
             _logger = logger;
             _logger.LogInformation("Init event handler");
+            _repository = snapshotRepository;
         }
 
-        public override async Task Handle(UpdateArticle command, CancellationToken cancellationToken)
+        public async Task Handle(UpdateArticle command, CancellationToken cancellationToken)
         {
             //Console.WriteLine("Save to database");
             _logger.LogInformation("=========Handle command message");
 
-            var aggregate = await GetAsync<ArticleAggregate>(command.AggregateId, cancellationToken);
+            var aggregate = await _repository.GetAsync<ArticleAggregate>(command.AggregateId, cancellationToken);
 
             if (aggregate != null)
             {
@@ -48,10 +49,12 @@ namespace Dapps.CqrsSample.CommandHandlers
 
                 _logger.LogInformation("=========Fire event to event handler");
 
-                await CommitAsync(aggregate, cancellationToken);
+                await _repository.SaveAsync(aggregate, cancellation: cancellationToken);
             }
-
-            _logger.LogInformation("=========Article not existed");
+            else
+            {
+                _logger.LogWarning($"Article with ID {command.AggregateId} not found for update.");
+            }
         }
     }
 }

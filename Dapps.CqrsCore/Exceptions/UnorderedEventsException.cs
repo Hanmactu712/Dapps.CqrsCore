@@ -8,8 +8,4 @@ internal class UnorderedEventsException : Exception
         : base($"The events for this aggregate are not in the expected order ({aggregate}).")
     {
     }
-
-    //protected UnorderedEventsException(SerializationInfo info, StreamingContext context) : base(info, context)
-    //{
-    //}
 }

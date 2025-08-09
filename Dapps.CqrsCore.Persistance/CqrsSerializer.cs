@@ -8,7 +8,7 @@ using Newtonsoft.Json.Serialization;
 
 namespace Dapps.CqrsCore.Persistence
 {
-    public class Serializer : ISerializer
+    public class CqrsSerializer : ICqrsSerializer
     {
         static readonly Dictionary<string, DynamicContractResolver> ContractResolvers = new Dictionary<string, DynamicContractResolver>();
 

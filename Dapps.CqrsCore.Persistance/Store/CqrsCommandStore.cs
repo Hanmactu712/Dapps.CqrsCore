@@ -14,22 +14,22 @@ namespace Dapps.CqrsCore.Persistence.Store
     /// <summary>
     /// Default command store
     /// </summary>
-    public class CommandStore : ICqrsCommandStore
+    public class CqrsCommandStore : ICqrsCommandStore
     {
         private readonly string _offlineStorageFolder;
         private const string DefaultFolder = "Commands";
-        private readonly ICommandDbContext _dbContext;
+        private readonly ICqrsCommandDbContext _dbContext;
 
-        public CommandStore(ISerializer serializer, CommandStoreOptions options, ICommandDbContext dbContext)
+        public CqrsCommandStore(ICqrsSerializer serializer, CommandStoreOptions options, ICqrsCommandDbContext dbContext)
         {
-            Serializer = serializer ?? throw new ArgumentNullException(nameof(ISerializer));
+            Serializer = serializer ?? throw new ArgumentNullException(nameof(ICqrsSerializer));
 
             _offlineStorageFolder = options?.CommandLocalStorage ??
                                     Path.Combine(AppDomain.CurrentDomain.BaseDirectory, DefaultFolder);
             _dbContext = dbContext;
         }
 
-        public ISerializer Serializer { get; }
+        public ICqrsSerializer Serializer { get; }
 
         public bool Exists(Guid commandId)
         {
@@ -145,25 +145,44 @@ namespace Dapps.CqrsCore.Persistence.Store
         {
             var dbContext = _dbContext;
             // Serialize the event stream and write it to an external file.
-            var commands = await GetByAggregateIdAsync(aggregateId, cancellation);
-            foreach (var command in commands)
+            //var commands = await GetByAggregateIdAsync(aggregateId, cancellation);
+
+            await dbContext.BeginTransactionAsync(cancellation);
+
+            try
             {
-                // Create a new directory using the aggregate identifier as the folder name.
-                var path = Path.Combine(_offlineStorageFolder, DefaultFolder, aggregateId.ToString());
-                if (!Directory.Exists(path))
-                    Directory.CreateDirectory(path);
+                //get tracking commands
+                var commands = await dbContext.Commands.Where(c => c.AggregateId.Equals(aggregateId)).ToListAsync(cancellation);
 
-                //get json data from event
-                var data = Serializer.Serialize(command);
-                var file = Path.Combine(path, $"{command.Id}.json");
-                await File.WriteAllTextAsync(file, data, Encoding.Unicode, cancellation);
+                foreach (var command in commands)
+                {
+                    // Create a new directory using the aggregate identifier as the folder name.
+                    var path = Path.Combine(_offlineStorageFolder, DefaultFolder, aggregateId.ToString());
+                    if (!Directory.Exists(path))
+                        Directory.CreateDirectory(path);
 
-                // Delete the aggregate and the events from the online logs.
+                    //get json data from event
+                    var data = Serializer.Serialize(command);
+                    var file = Path.Combine(path, $"{command.Id}.json");
+                    await File.WriteAllTextAsync(file, data, Encoding.Unicode, cancellation);
 
-                dbContext.Commands.Remove(command);
+                    // Delete the aggregate and the events from the online logs.
+
+                    //attached entity to context to remove it                
+                    dbContext.Commands.Remove(command);
+                }
+
+                await dbContext.SaveChangesAsync(cancellation);
+
+                // Commit the transaction if everything is successful
+                await dbContext.CommitAsync(cancellation);
             }
-
-            await dbContext.SaveChangesAsync(cancellation);
+            catch (Exception)
+            {
+                // Rollback the transaction if any error occurs
+                await dbContext.RollbackAsync(cancellation);
+                throw;
+            }
         }
 
         public IEnumerable<SerializedCommand> UnBox(Guid aggregateId)

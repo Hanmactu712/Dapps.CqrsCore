@@ -2,7 +2,7 @@
 
 namespace Dapps.CqrsCore.Utilities;
 
-public interface ISerializer
+public interface ICqrsSerializer
 {
     /// <summary>
     /// Returns a object of the desired type, deserialized from the input string.

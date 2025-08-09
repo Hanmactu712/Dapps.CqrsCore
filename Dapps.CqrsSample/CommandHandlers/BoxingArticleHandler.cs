@@ -5,6 +5,7 @@ using Dapps.CqrsCore.Command;
 using Dapps.CqrsCore.Event;
 using Dapps.CqrsCore.Snapshots;
 using Dapps.CqrsSample.Aggregates;
+using Dapps.CqrsSample.EventHandlers;
 using Microsoft.Extensions.Logging;
 
 namespace Dapps.CqrsSample.CommandHandlers
@@ -20,26 +21,30 @@ namespace Dapps.CqrsSample.CommandHandlers
         }
     }
 
-    public class BoxingArticleHandler : CommandHandler<BoxingArticle>
+    public class BoxingArticleHandler : ICqrsCommandHandler<BoxingArticle>
     {
         private readonly ILogger<BoxingArticle> _logger;
         private readonly ICqrsCommandStore _commandStore;
-        public BoxingArticleHandler(ICqrsCommandDispatcher queue, ICqrsEventRepository eventRepository, ICqrsEventDispatcher eventQueue,
-            ILogger<BoxingArticle> logger, SnapshotRepository snapshotRepository, ICqrsCommandStore commandStore) : base(queue, eventRepository, eventQueue, snapshotRepository)
+        private readonly ICqrsEventRepository _repository;
+        private readonly ICqrsEventDispatcher _eventDispatcher;
+
+        public BoxingArticleHandler(ILogger<BoxingArticle> logger, ISnapshotRepository snapshotRepository, ICqrsCommandStore commandStore, ICqrsEventDispatcher eventDispatcher)
         {
             _logger = logger;
             _commandStore = commandStore;
             _logger.LogInformation("Init event handler");
+            _repository = snapshotRepository;
+            _eventDispatcher = eventDispatcher;
         }
 
-        public override async Task Handle(BoxingArticle command, CancellationToken cancellationToken)
+        public async Task Handle(BoxingArticle command, CancellationToken cancellationToken)
         {
             //Console.WriteLine("Save to database");
             _logger.LogInformation("=========Handle BoxingArticle message");
 
             try
             {
-                var aggregate = Get<ArticleAggregate>(command.AggregateId);
+                var aggregate = await _repository.GetAsync<ArticleAggregate>(command.AggregateId);
 
                 if (aggregate == null) return;
 
@@ -47,7 +52,10 @@ namespace Dapps.CqrsSample.CommandHandlers
 
                 _logger.LogInformation("=========Boxing command Ok!");
 
-                await EventRepository.BoxAsync(aggregate, cancellationToken);
+                await _repository.BoxAsync(aggregate, cancellationToken);
+
+                //emit boxed event
+                _eventDispatcher.Publish(new ArticleBoxed(aggregate.Id));
 
                 _logger.LogInformation("=========BoxingArticle Ok!");
             }

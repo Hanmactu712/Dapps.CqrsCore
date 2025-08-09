@@ -19,26 +19,28 @@ namespace Dapps.CqrsSample.CommandHandlers
         }
     }
 
-    public class UnboxingArticleHandler : CommandHandler<UnboxingArticle>
+    public class UnboxingArticleHandler : ICqrsCommandHandler<UnboxingArticle>
     {
         private readonly ILogger<UnboxingArticle> _logger;
-        public UnboxingArticleHandler(ICqrsCommandDispatcher queue, ICqrsEventRepository eventRepository, ICqrsEventDispatcher eventQueue,
-            ILogger<UnboxingArticle> logger, SnapshotRepository snapshotRepository) : base(queue, eventRepository, eventQueue, snapshotRepository)
+        private readonly ICqrsEventRepository _repository;
+
+        public UnboxingArticleHandler(ILogger<UnboxingArticle> logger, ISnapshotRepository snapshotRepository)
         {
             _logger = logger;
             _logger.LogInformation("Init event handler");
+            _repository = snapshotRepository;
         }
 
-        public override async Task Handle(UnboxingArticle command, CancellationToken cancellationToken)
+        public async Task Handle(UnboxingArticle command, CancellationToken cancellationToken)
         {
             //Console.WriteLine("Save to database");
             _logger.LogInformation("=========Handle UnboxingArticle");
 
-            var aggregate = await EventRepository.UnboxAsync<ArticleAggregate>(command.AggregateId, cancellationToken);
-            
+            var aggregate = await _repository.UnboxAsync<ArticleAggregate>(command.AggregateId, cancellationToken);
+
             _logger.LogInformation($"========= Title = {aggregate.Id}");
 
-            await CommitAsync(aggregate, cancellationToken);
+            await _repository.SaveAsync(aggregate, cancellation: cancellationToken);
 
             _logger.LogInformation("=========Fire event to UnboxingArticle event handler");
         }

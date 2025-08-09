@@ -8,8 +8,4 @@ internal class MissingAggregateIdentifierException : Exception
         : base($"The aggregate identifier is missing from both the aggregate instance ({aggregateType.FullName}) and the event instance ({eventType.FullName}).")
     {
     }
-
-    //protected MissingAggregateIdentifierException(SerializationInfo info, StreamingContext context) : base(info, context)
-    //{
-    //}
 }

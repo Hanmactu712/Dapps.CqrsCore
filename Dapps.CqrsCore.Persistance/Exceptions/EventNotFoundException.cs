@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Runtime.Serialization;
 
 namespace Dapps.CqrsCore.Persistence.Exceptions
 {
@@ -15,10 +14,6 @@ namespace Dapps.CqrsCore.Persistence.Exceptions
         }
 
         public EventNotFoundException(string message, Exception innerException) : base(message, innerException)
-        {
-        }
-
-        protected EventNotFoundException(SerializationInfo info, StreamingContext context) : base(info, context)
         {
         }
     }

@@ -19,14 +19,14 @@ namespace Dapps.CqrsSample
             _queue = queue;
         }
 
-        public Task StartAsync(CancellationToken cancellationToken)
+        public async Task StartAsync(CancellationToken cancellationToken)
         {
             var random = new Random();
             //test with sending a chains of commands
 
             var testBoxingId = Guid.Empty;
 
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 1; i++)
             {
                 var aggregateId = Guid.NewGuid();
                 var userId = Guid.NewGuid();
@@ -39,12 +39,12 @@ namespace Dapps.CqrsSample
                 };
 
                 _logger.LogInformation($"Send create command {command.Title}");
-                _queue.Send(command);
+                await _queue.SendAsync(command);
                 _logger.LogInformation($"Create command {command.Title} is sent");
 
-                var updateTimes = random.Next(5, 10);
+                var updateTimes = random.Next(5, 100);
 
-                if (i == 5)
+                if (i == 0)
                 {
                     testBoxingId = aggregateId;
                 }
@@ -59,20 +59,18 @@ namespace Dapps.CqrsSample
                     };
 
                     _logger.LogInformation($"Send update command {command.Title}");
-                    _queue.Send(updateCommand);
+                    await _queue.SendAsync(updateCommand);
                     _logger.LogInformation($"Update command {command.Title} is sent");
                 }
             }
 
-            ////test boxing aggregate
-            //var boxingCommand = new BoxingArticle(testBoxingId, Guid.NewGuid());
-            //_queue.Send(boxingCommand);
-            ////test unboxing aggregate
+            //test boxing aggregate
+            var boxingCommand = new BoxingArticle(testBoxingId, Guid.NewGuid());
+            await _queue.SendAsync(boxingCommand);
+            //test unboxing aggregate
 
-            //var unBoxingCommand = new UnboxingArticle(testBoxingId, Guid.NewGuid());
-            //_queue.Send(unBoxingCommand);
-
-            return Task.CompletedTask;
+            var unBoxingCommand = new UnboxingArticle(testBoxingId, Guid.NewGuid());
+            await _queue.SendAsync(unBoxingCommand);
         }
 
         public Task StopAsync(CancellationToken cancellationToken)

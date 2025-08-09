@@ -8,8 +8,4 @@ class MissingDefaultConstructorException : Exception
         : base($"This class has no default constructor ({type.FullName}).")
     {
     }
-
-    //protected MissingDefaultConstructorException(SerializationInfo info, StreamingContext context) : base(info, context)
-    //{
-    //}
 }

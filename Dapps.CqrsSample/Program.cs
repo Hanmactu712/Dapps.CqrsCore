@@ -101,12 +101,12 @@ namespace Dapps.CqrsSample
                                 migrationOps => migrationOps.MigrationsAssembly(currentAssembly));
                             //option.UseInMemoryDatabase("EventDb");
                         })
-                        .AddSerializer<Serializer>() //add custom serializer if needed
-                        .AddCommandStore<CommandStore>() //add custom CommandStore if needed
-                        .AddCommandDispatcher<CommandDispatcher>() //add custom CommandQueue if needed
-                        .AddEventStore<EventStore>() //add custom EventStore if needed
-                        .AddEventDispatcher<EventDispatcher>() //add custom EventQueue if needed
-                        .AddEventRepository<EventRepository>() //add custom EventRepository if needed
+                        .AddSerializer<CqrsSerializer>() //add custom serializer if needed
+                        .AddCommandStore<CqrsCommandStore>() //add custom CommandStore if needed
+                        .AddCommandDispatcher<CqrsCommandDispatcher>() //add custom CommandQueue if needed
+                        .AddEventStore<CqrsEventStore>() //add custom EventStore if needed
+                        .AddEventDispatcher<CqrsEventDispatcher>() //add custom EventQueue if needed
+                        .AddEventRepository<CqrsEventRepository>() //add custom EventRepository if needed
                         .AddSnapshotFeature(option =>
                         {
                             option.Interval = 10;

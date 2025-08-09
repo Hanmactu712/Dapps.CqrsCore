@@ -5,7 +5,7 @@ namespace Dapps.CqrsCore.Event;
 /// <summary>
 /// Base class for event message
 /// </summary>
-public abstract class Event : ICqrsEvent
+public abstract class CqrsEvent : ICqrsEvent
 {
     /// <summary>
     /// Aggregate Id. Version and this fields will be compose unique key for event
@@ -36,7 +36,7 @@ public abstract class Event : ICqrsEvent
     /// </summary>
     public Guid ReferenceId { get; set; }
 
-    protected Event()
+    protected CqrsEvent()
     {
         Time = DateTimeOffset.UtcNow;
     }

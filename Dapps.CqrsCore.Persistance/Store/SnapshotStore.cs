@@ -160,21 +160,19 @@ namespace Dapps.CqrsCore.Persistence.Store
             if (existingSnapshot == null)
             {
                 await dbContext.Snapshots.AddAsync(snapshot, cancellation);
+                await dbContext.SaveChangesAsync(cancellation);
+
+                //detach the entity to avoid tracking issues
+                dbContext.Entry(snapshot).State = EntityState.Detached;
             }
             else
             {
-                existingSnapshot = new Snapshot()
-                {
-                    AggregateId = snapshot.AggregateId,
-                    Version = snapshot.Version,
-                    State = snapshot.State,
-                    Time = snapshot.Time,
-                };
-
-                dbContext.Entry(existingSnapshot).State = EntityState.Modified;
+                // Attach and update the incoming snapshot
+                dbContext.Snapshots.Attach(snapshot);
+                dbContext.Entry(snapshot).State = EntityState.Modified;
+                await dbContext.SaveChangesAsync(cancellation);
+                dbContext.Entry(snapshot).State = EntityState.Detached;
             }
-
-            await dbContext.SaveChangesAsync(cancellation);
         }
 
         public async Task BoxAsync(Guid aggregate, CancellationToken cancellation = default)

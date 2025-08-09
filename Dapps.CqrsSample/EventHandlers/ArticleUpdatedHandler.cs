@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Dapps.CqrsSample.EventHandlers
 {
-    public class ArticleUpdated : Event
+    public class ArticleUpdated : CqrsEvent
     {
         public readonly string Title;
         public readonly string Summary;

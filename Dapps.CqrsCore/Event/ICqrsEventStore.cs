@@ -15,7 +15,7 @@ public interface ICqrsEventStore
     /// <summary>
     /// Utility for serializing and deserializing events.
     /// </summary>
-    ISerializer Serializer { get; }
+    ICqrsSerializer Serializer { get; }
 
     /// <summary>
     /// Returns true if an aggregate exists.

@@ -52,5 +52,16 @@ namespace Dapps.CqrsCore.Persistence.Store
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         Task CommitAsync(CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// rolelbacks the transaction.
+        /// </summary>
+        void Rollback();
+
+        /// <summary>
+        /// Rollbacks the transaction asynchronously.
+        /// </summary>
+        /// <returns></returns>
+        Task RollbackAsync(CancellationToken cancellation = default);
     }
 }
