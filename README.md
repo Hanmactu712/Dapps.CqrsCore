@@ -1,5 +1,11 @@
-[![Nuget](https://img.shields.io/nuget/v/Dapps.CqrsCore.AspNetCore)](https://www.nuget.org/packages/Dapps.CqrsCore.AspNetCore/)
-[![Nuget](https://img.shields.io/nuget/dt/Dapps.CqrsCore.AspNetCore)](https://www.nuget.org/packages/Dapps.CqrsCore.AspNetCore/)
+[![Dapps.CqrsCore.AspNetCore](https://img.shields.io/nuget/v/Dapps.CqrsCore.AspNetCore)](https://www.nuget.org/packages/Dapps.CqrsCore.AspNetCore/)
+[![Dapps.CqrsCore.AspNetCore](https://img.shields.io/nuget/dt/Dapps.CqrsCore.AspNetCore)](https://www.nuget.org/packages/Dapps.CqrsCore.AspNetCore/)
+
+[![Dapps.CqrsCore](https://img.shields.io/nuget/r/Dapps.CqrsCore)](https://www.nuget.org/packages/Dapps.CqrsCore/)
+[![Dapps.CqrsCore](https://img.shields.io/nuget/dt/Dapps.CqrsCore)](https://www.nuget.org/packages/Dapps.CqrsCore/)
+
+[![Dapps.CqrsCore.Persistence](https://img.shields.io/nuget/w/Dapps.CqrsCore.Persistence)](https://www.nuget.org/packages/Dapps.CqrsCore.Persistence/)
+[![Dapps.CqrsCore.Persistence](https://img.shields.io/nuget/dt/Dapps.CqrsCore.Persistence)](https://www.nuget.org/packages/Dapps.CqrsCore.Persistence/)
 
 # ASP.NET Core CQRS Service
 
@@ -19,34 +25,33 @@ If you like or are using this project to learn or start your solution, please gi
 
 ## 1. Introducing
 
-CQRS pattern is the common parttern is used to tackle the complicated application. 
+CQRS pattern is the common parttern is used to tackle the complicated application.
 This project is to provide a simple way to apply CQRS to any application using .net 5.
 
-The CQRS service contains these mains components: 
+The CQRS service contains these mains components:
 
 ### A. WRITE side
 
 1. Serializer - using to serialize / deserialize command & event messsage before persist or get from store database
 
 2. Aggregate - The main object which contains all the data properties & logic to handle a business
+
    - Aggregate Root - Base class of any aggregate object
 
 3. Command (Represent for Write side in the CQRS pattern)
-   - Base Command class, Command interface. 
+   - Base Command class, Command interface.
    - Command Store - to persist all the command messages
-   - Command Queue - to queue the command message and deliver it to corresponding handler which handle the business logic and publish corresponding events
+   - Command Dispatcher - to publish the command message and deliver it to corresponding handler which handle the business logic and publish corresponding events
    - Command Handler - to handle the command message received from command queue
-   
 4. Event (Represent for Write side in the CQRS pattern)
    - Base Event class, Event interface
    - Event Store - to persist all the event messages
-   - Evemt Queue - to queue the event message and deliver it to corresponding handler which handle the business logic and save data to the READ side of CQRS
+   - Event Dispatcher - to publish the event message and deliver it to corresponding handler which handle the business logic and save data to the READ side of CQRS
    - Event Repository - to processing event logic and communicate with event store to persist event message
    - Event Handler - to handle the event message received from event queue.
-   
 5. Snapshot - the mechanism to capture the state of an aggregate after a specific version of events.
    - Snapshot store - to persist snapshot records
-   - Snapshot repository - to handle logic relating to snapshot   
+   - Snapshot repository - to handle logic relating to snapshot
 
 ### A. READ side
 
@@ -59,8 +64,10 @@ Here's all you need to get started (you can also check the [sample project](http
 ### 1. Add the [Dapps.CqrsCore.AspNetCore NuGet package](https://www.nuget.org/packages/Dapps.CqrsCore.AspNetCore/) to your ASP.NET Core project.
 
 ### 2. Configure CQRS service dependency injection
-   a. With the default configuration, just need to do this: 
-``` csharp
+
+a. With the default configuration, just need to do this:
+
+```csharp
     var currentAssembly = Assembly.GetAssembly(typeof(Program)).GetName().Name;
     services.AddCqrsService(_configuration,
     config =>
@@ -75,12 +82,16 @@ Here's all you need to get started (you can also check the [sample project](http
                 migrationOps => migrationOps.MigrationsAssembly(currentAssembly));
     }, _logger)
 ```
-with this confgiuration, the system will auto register all the neccessary services for running cqrs such as Serializer, Command Store, Command Queue, Event Store, Event Repository, Event Queue.
 
-The configuration option is: 
-``` csharp
+with this confgiuration, the system will auto register all the neccessary services for running cqrs such as Serializer, Command Store, Command Dispatcher, Event Store, Event Repository, Event Dispatcher.
+In the latest version, the package will leverage [MediatR](https://www.nuget.org/packages/MediatR/) - using latest free version 12.5.0 for dispatching commands and events in memory.
+For using Event broker such as Kafka, RabbitMQ,... , you need to customize the ICqrsEventDispatcher & ICqrsEventHandler accordingly.
+
+The configuration option is:
+
+```csharp
     public class CqrsServiceOptions
-    {        
+    {
         /// <summary>
         /// Option to save all the commands. If false, only save scheduled commands
         /// </summary>
@@ -111,9 +122,9 @@ The configuration option is:
     }
 ```
 
-In case you want to using your owner implementation of such Serializer, Command Store, Event Store Event Queue, Event Repository, use can register them to override the default implemenation. 
+In case you want to using your owner implementation of such Serializer, Command Store, Event Store Event Queue, Event Repository, use can register them to override the default implemenation.
 
-``` csharp
+```csharp
    services.AddCqrsService(_configuration,
        config =>
        {
@@ -125,18 +136,18 @@ In case you want to using your owner implementation of such Serializer, Command 
            config.DbContextOption = sql =>
                sql.UseSqlServer(_configuration.GetConnectionString("CqrsConnection"),
                    migrationOps => migrationOps.MigrationsAssembly(currentAssembly));
-       }, _logger)                        
-      .AddSerializer<Serializer>() //add custom serializer if needed
-      .AddCommandStore<CommandStore>( ) //add custom CommandStore if needed
-      .AddCommandQueue<CommandQueue>() //add custom CommandQueue if needed
-      .AddEventStore<EventStore>() //add custom EventStore if needed
-      .AddEventQueue<EventQueue>() //add custom EventQueue if needed
-      .AddEventRepository<EventRepository>() //add custom EventRepository if needed
+       }, _logger)
+    .AddSerializer<CqrsSerializer>() //add custom serializer if needed
+    .AddCommandStore<CqrsCommandStore>() //add custom CommandStore if needed
+    .AddCommandDispatcher<CqrsCommandDispatcher>() //add custom CommandDispatcher if needed
+    .AddEventStore<CqrsEventStore>() //add custom EventStore if needed
+    .AddEventDispatcher<CqrsEventDispatcher>() //add custom EventDispatcher if needed
+    .AddEventRepository<CqrsEventRepository>() //add custom EventRepository if needed
 ```
 
 You can also change the default configuration for store database to separate the database store.
 
-``` csharp
+```csharp
    services.AddCqrsService(_configuration,
        config =>
        {
@@ -148,7 +159,7 @@ You can also change the default configuration for store database to separate the
            config.DbContextOption = sql =>
                sql.UseSqlServer(_configuration.GetConnectionString("CqrsConnection"),
                    migrationOps => migrationOps.MigrationsAssembly(currentAssembly));
-       }, _logger)                        
+       }, _logger)
       .AddCommandStoreDb<CommandDbContext>(option =>
       {
           option.UseSqlServer(_configuration.GetConnectionString("CommandDbConnection"),
@@ -164,9 +175,9 @@ You can also change the default configuration for store database to separate the
       })
 ```
 
-The Dapps.CqrsCore.AspNetCore project also provides a mechanism for snapshoting event incase the number of events of an aggregate is too big or incresing too fast there for it slow down the business logic processing. To enable the snapshot feature, using this: 
+The Dapps.CqrsCore.AspNetCore project also provides a mechanism for snapshoting event incase the number of events of an aggregate is too big or incresing too fast there for it slow down the business logic processing. To enable the snapshot feature, using this:
 
-``` csharp
+```csharp
    services.AddCqrsService(_configuration,
        config =>
        {
@@ -178,7 +189,7 @@ The Dapps.CqrsCore.AspNetCore project also provides a mechanism for snapshoting 
            config.DbContextOption = sql =>
                sql.UseSqlServer(_configuration.GetConnectionString("CqrsConnection"),
                    migrationOps => migrationOps.MigrationsAssembly(currentAssembly));
-       }, _logger)                        
+       }, _logger)
       .AddSnapshotFeature(option =>
       {
           option.Interval = 10;
@@ -188,7 +199,7 @@ The Dapps.CqrsCore.AspNetCore project also provides a mechanism for snapshoting 
 
 same with command & events, you can override the default snapshot store db configuration, snapshot repository as well.
 
-``` csharp
+```csharp
    services.AddCqrsService(_configuration,
        config =>
        {
@@ -200,7 +211,7 @@ same with command & events, you can override the default snapshot store db confi
            config.DbContextOption = sql =>
                sql.UseSqlServer(_configuration.GetConnectionString("CqrsConnection"),
                    migrationOps => migrationOps.MigrationsAssembly(currentAssembly));
-       }, _logger)                        
+       }, _logger)
       .AddSnapshotFeature(option =>
       {
           option.Interval = 10;
@@ -217,13 +228,15 @@ same with command & events, you can override the default snapshot store db confi
       })
 ```
 
-### 3. Build your aggregates, commands, events as well as command handles, events handles to fit with your business. 
-Node that: 
+### 3. Build your aggregates, commands, events as well as command handles, events handles to fit with your business.
+
+Node that:
+
 - All the aggregate should be derived from Aggregate Root.
-- All the handler should be derived from Command Handler or Event Handler accordingly. For best practice, 1 command/event should be handle by 1 corresponding class Command Handler / Event Handler
+- All the handler should be derived from ICqrsCommandHandler or ICqrsEventHandler accordingly. For best practice, 1 command/event should be handle by 1 corresponding class Command Handler / Event Handler
 - The Dapps.CqrsCore.AspNetCore project provide a function to supports register all the command handlers & event handlers via service dependency injection. See sample below to know how to use this function
 
-``` csharp
+```csharp
    services.AddCqrsService(_configuration,
        config =>
        {
@@ -235,27 +248,24 @@ Node that:
            config.DbContextOption = sql =>
                sql.UseSqlServer(_configuration.GetConnectionString("CqrsConnection"),
                    migrationOps => migrationOps.MigrationsAssembly(currentAssembly));
-       }, _logger)                        
+       }, _logger)
       //This functions will looking for all command handlers & event handlers to register to Service Providers
       .AddHandlers(option => option.HandlerAssemblyNames = new List<string>()
       {
           currentAssembly
       })
-      //This functions will looking for all command handlers to register to Service Providers
-      .AddCommandHandlers(option => option.HandlerAssemblyNames = new List<string>()
-      {
-          currentAssembly
-      })
-      //This functions will looking for all event handlers to register to Service Providers
-      .AddEventHandlers(option => option.HandlerAssemblyNames = new List<string>()
-      {
-          currentAssembly
-      });
 ```
+
 ## 3. Dependency
 
-This project using these dependency: 
+This project using these dependency:
+
 #### 1. [Dapps.CqrsCore](https://www.nuget.org/packages/Dapps.CqrsCore/)
+
 #### 2. [Dapps.CqrsCore.Persistence](https://www.nuget.org/packages/Dapps.CqrsCore.Persistence/)
+
 #### 3. [Ardalis.Specification](https://www.nuget.org/packages/ardalis.specification/) (great thanks to Ardalis)
+
 #### 4. [Ardalis.Specification.EntityFrameworkCore](https://www.nuget.org/packages/ardalis.specification.entityframeworkcore/) (great thanks to Ardalis)
+
+#### 5. [MediatR](https://www.nuget.org/packages/MediatR/) - using latest free version 12.5.0

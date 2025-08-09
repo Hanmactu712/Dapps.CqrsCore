@@ -5,8 +5,11 @@
     <Authors>Dang Dinh Duc</Authors>
     <Description>Core library for persistence in cqrs + es pattern in .net 5
 Provide base class, interface &amp; default persistence stores</Description>
-    <PackageReleaseNotes>- Bug fixing
-- Update Async function</PackageReleaseNotes>
+    <PackageReleaseNotes>- Remove base case CommandHandlers, 
+- Inclucde ICqrsEventDispatcher into ICqrsEventRepository to dispatch events after aggregate is saved.
+- Add rollback function for CommandDbContext &amp; SnapshotDBContext
+- Bug fixing
+- Rename some interfaces &amp; classes</PackageReleaseNotes>
     <PackageProjectUrl>https://github.com/Hanmactu712/Dapps.CqrsCore</PackageProjectUrl>
     <Version>1.2.2</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
